@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>高血压发生概率计算器</title>
+    <style>
+        body {
+            background: linear-gradient(to right, #ff9966, #ff5e62);
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        input, select {
+            border-radius: 15px;
+            border: none;
+            padding: 10px;
+            margin-bottom: 10px;
+            width: 100%;
+        }
+        button {
+            border-radius: 15px;
+            border: none;
+            padding: 10px;
+            color: white;
+            background-color: #ff5e62;
+            cursor: pointer;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #ff9966;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>高血压发生概率计算器</h1>
+        <h3>亚洲中医药大学，作者：赵日天</h3>
+        <input type="number" id="age" placeholder="年龄 (AGE)" required>
+        <input type="number" id="bmi" placeholder="身体质量指数 (BMI)" required>
+        <select id="edu" required>
+            <option value="" disabled selected>教育程度 (EDU)</option>
+            <option value="0">0</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+        </select>
+        <select id="occu" required>
+            <option value="" disabled selected>职业 (OCCU)</option>
+            <option value="0">0</option>
+            <option value="1">1</option>
+        </select>
+        <button id="calculate">计算概率</button>
+        <div id="result"></div>
+    </div>
+    <script>
+        document.getElementById('calculate').addEventListener('click', function() {
+            var age = document.getElementById('age').value;
+            var bmi = document.getElementById('bmi').value;
+            var edu = document.getElementById('edu').value;
+            var occu = document.getElementById('occu').value;
+            var p = 1 / (1 + Math.exp(-(-7.08851 + 0.07869*age + 0.10078*bmi + 0.22694*(edu==1) + 0.49830*(edu==2) + 0.63495*(occu==1))));
+            document.getElementById('result').textContent = '高血压发生概率：' + p;
+        });
+    </script>
+</body>
+</html>
