@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>易AI - RCT方法学提示词</title>
+    <style>
+        @font-face {
+            font-family: 'Oracle';
+            src: url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@700&display=swap');
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            background-color: black;
+            color: white;
+            overflow: hidden;
+        }
+
+        .logo {
+            font-family: 'Oracle', sans-serif;
+            font-size: 48px;
+            font-weight: bold;
+            color: #FFD700;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px #FFD700, 0 0 20px #FFD700, 0 0 30px #FFD700;
+        }
+
+        .input-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 20px; /* 增加输入框之间的间距 */
+        }
+
+        .input-container input {
+            width: 300px; /* 增加输入框的宽度 */
+            padding: 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: rgba(51, 51, 51, 0.8);
+            color: white;
+            box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+            transition: box-shadow 0.3s;
+        }
+
+        .input-container input:focus {
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.8); /* 金色边框 */
+        }
+
+        .button-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        button:hover {
+            background-color: #45a049;
+            transform: scale(1.05); /* 按钮放大效果 */
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0,0,0);
+            background-color: rgba(0,0,0,0.4);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 600px;
+            color: black;
+            position: relative;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .copy-button {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            padding: 5px 10px;
+            font-size: 14px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        .copy-button:hover {
+            background-color: #45a049;
+            transform: scale(1.05); /* 按钮放大效果 */
+        }
+
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background-color: white;
+            border-radius: 50%;
+            opacity: 0;
+            animation: twinkle 2s infinite;
+        }
+
+        @keyframes twinkle {
+            0% { opacity: 0; }
+            50% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="logo">易AI</div>
+    <h1>protocol-RCT-方法写作提示词</h1>
+    <div class="input-container">
+        <input type="text" id="interventionInput" placeholder="输入干预措施，例如某种新药物或某种处理方案，如PD-1">
+        <input type="text" id="diseaseInput" placeholder="输入疾病名称，例如：非小细胞肺癌">
+        <input type="text" id="outcomeInput" placeholder="输入主要结局变量，例如：生存率">
+        <input type="text" id="controlInput" placeholder="输入对照组名称，例如：标准治疗">
+    </div>
+    <div class="button-container">
+        <button onclick="generatePrompt('design')">研究设计提示词</button>
+        <button onclick="generatePrompt('subjects')">研究对象提示词</button>
+        <button onclick="generatePrompt('sampleSize')">样本量计算提示词</button>
+        <button onclick="generatePrompt('interventions')">干预措施提示词</button>
+        <button onclick="generatePrompt('outcomes')">结局指标提示词</button>
+        <button onclick="generatePrompt('dataMonitoring')">数据收集与监控以及安全性提示词</button>
+        <button onclick="generatePrompt('statistics')">统计分析提示词</button>
+        <button onclick="generatePrompt('ethicsAndCommunication')">伦理与传播提示词</button>
+    </div>
+
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <p id="promptText"></p>
+            <button class="copy-button" onclick="copyPrompt()">复制</button>
+        </div>
+    </div>
+
+    <script>
+        function generatePrompt(type) {
+            var interventionInput = document.getElementById("interventionInput").value;
+            var diseaseInput = document.getElementById("diseaseInput").value;
+            var outcomeInput = document.getElementById("outcomeInput").value;
+            var controlInput = document.getElementById("controlInput").value;
+
+            var prompts = {
+                design: `设计一个RCT，评估${interventionInput}对于${diseaseInput}的疗效。第一步：请根据您的知识和推理能力,为一项探索${interventionInput} 治疗${outcomeInput}提出最优的试验设计,包括分组方案等关键参数。我的主要结局变量是${outcomeInput}。我的治疗组是${interventionInput}，我的对照组是${controlInput}。第二步：以第一步为基础，进行“研究设计”部分的撰写。撰写内容必须按照下面的写作内容进行描述，具体包括：”描述研究类型(RCT)；单中心/多中心；随机分组的随机方法（尽可能使用较新的随机化方法以及较为先进的计算机技术来实现随机化相关操作，使整个研究看起来高大上），分组隐藏措施、盲法名称、盲法实施方式、盲法维持以及揭盲、对照形式，研究时间以及研究地点。此外，我会给你一些要求和资料，帮助你更好的写出“研究设计”部分。资料如下：1. 我打算开展的研究是一个单中心，样本量有限。2. 在进行随机化方法的撰写时，首先要整理和归纳此前的同类研究所用的随机化策略，然后再基于临床实际场景，并最终结合同类研究以及临床实际场景进行最优的随机化策略选择。3.盲法推荐的时候，首先要整理和归纳此前同类研究所用的盲法策略，再根据现有的分组方案判定本研究设计能否实现盲法，如果不能实现盲法，在写作时应该包括通过哪些策略去降低因为无法使用盲法导致偏倚的发生。 4，撰写最终内容时，一定要具体写清楚盲法和随机化实施的具体细节和过程，且尽可能使用较新的随机化方法以及较为先进的计算机技术来实现随机化和盲法的相关操作，使整个研究看起来高大上；最后，要保证写作内容的逻辑性，可读性，一致性，学术性。要符合发表在高分SCI期刊的protocol的要求。`,
+                subjects: `设计一个RCT，评估${interventionInput}治疗${diseaseInput}的疗效。我的主要结局变量是${outcomeInput}。我的治疗组是${interventionInput}，我的对照组是${controlInput}。现在，进行“研究对象”部分的撰写。撰写内容必须按照下面的写作内容进行描述，具体包括：”纳入标准、排除标准、受试者招募方式。其中，1. 我打算开展的研究是一个单中心，样本量有限。2. 在进行纳入标准撰写时，必须清晰定义研究的目标人群,包括疾病诊断、疾病阶段、年龄范围等，根据此前的同类研究以及疾病特点和试验目的,制定合理的纳入标准，根据此前的同类研究明确是否要求患者既往未接受过治疗,或者限制某些既往治疗史，如果有基因突变状态的要求,需要清楚描述。（3 ）撰写排除标准时，综合此前进行的同类研究列举可能影响患者安全性或试验结果的排除因素,明确禁止使用哪些既往治疗药物。排除标准要全面考虑,避免遗漏可能影响试验的因素。（4）描述受试者招募方式时，必须做到“描述清楚具体的受试者招募渠道，根据既往同类研究并综合研究的实际实施场景说明是否需要通过广告或其他方式进行公开招募，如果有特殊的筛选要求,需要说明具体的筛选流程。（5）尽可能引用相关指南或文献,以支持您设计的纳入/排除标准的合理性。（6）最后，要保证写作内容的逻辑性，可读性，一致性，学术性。要符合发表在高分SCI期刊的protocol的要求。`,
+                sampleSize: `设计一个RCT，评估${interventionInput}治疗${diseaseInput}的疗效。我的主要结局变量是${outcomeInput}。我的治疗组是${interventionInput}，我的对照组是${controlInput}。我要求你按照下列步骤一步步完成我的命令。第一步：根据方法学原理以及此前的同类研究帮我选择计算样本量所用的公式。第二步：基于文献列出公式中的参数值。参数值的取值原则如下：（1）既往同类研究，以计算出来的样本量更低为选择原则；（2）对于一些常规的参数（如alpha和beta），基于大多数研究的选择通例；第三步：考虑失随访，失随访比例参照既往同类文献。第四步：按照计算依据，计算方法以及最终确定样本量“”来进行描述，并生成可直接用于搞质量SCI的protocol撰写的描述。保证撰写内容的逻辑性，可读性，学术性。需要说明的是：只需要说明用的是什么统计学软件计算以及软件的细节（版本号，城市，国家）的即可，而不需要给出公式。`,
+                interventions: `设计一个RCT，评估${interventionInput}治疗${diseaseInput}的疗效。我的主要结局变量是${outcomeInput}。我的治疗组是${interventionInput}，我的对照组是${controlInput}。现在，进行“干预措施”部分的撰写。撰写内容必须按照下面的写作内容进行描述，具体包括：”试验组干预措施；对照组干预措施；干预过程中“允许/禁止的其他措施”。其中，1. 我打算开展的研究是一个单中心，样本量有限。2. 在进行试验组干预措施撰写时，必须具体使用哪一种药物,包括剂量、给药方式(静脉滴注)、疗程等。需要详细说明是否需要做其他辅助检查,如疗效评估、安全性监测等。撰写此部分时，必须根据此前的同类研究以及疾病特点和试验目的撰写试验组干预措施撰写；（3 ）撰写对照组干预措施时，要明确写清楚具体使用何种治疗/策略/方案,包括药物种类、剂量、疗程等，同时需要明确阐述是否需要做其他辅助检查,如疗效评估、安全性监测等，撰写此部分时，必须根据此前的同类研究以及疾病特点和试验目的撰写，并最终综合此前的同类研究进行最终的评估；（4）描述干预过程中允许/禁止的其他措施部分时，要明确是否允许其他治疗。如果允许,需要有明确的规定。而考虑具有有哪些其他治疗时，参考同类研究。（5）尽可能引用相关指南或文献,以支持写作的合理性。（6）最后，要保证写作内容的逻辑性，可读性，一致性，学术性。要符合发表在高分SCI期刊的protocol的要求。此外，要对所涉及的医疗器械的细节，包括规格，型号，厂家名称，城市，国家进行描述`,
+                outcomes: `设计一个RCT，评估${interventionInput}治疗${diseaseInput}的疗效。我的主要结局变量是${outcomeInput}。我的治疗组是${interventionInput}，我的对照组是${controlInput}。现在，进行“结局指标”部分的撰写。撰写内容必须按照下面的写作内容进行描述，具体包括：”主要结局指标；次要结局指标以及两者的测量方法”。其中，1. 我打算开展的研究是一个单中心，样本量有限。2. 在进行主要结局指标撰写时，明确以结局变量作为主要结局指标。需要说明评估结局变量的具体方法,。可以设置一个明确的终点事件定义。撰写此部分时，必须根据此前的同类研究以及疾病特点和试验目的撰写；（3 ）撰写次要结局指标时，次要结局指标的选取可以参考同类研究的文献。必须说明评估这些指标的具体方法。（4）对于主要结局变量,需要明确随访时间,并说明随访方式(电话、门诊随访等)；对于其他指标,需要说明监测时间点、检查方式等，如果有特殊检查或复杂、昂贵的检查需要说明具体流程。（5）尽可能引用相关指南或文献,以支持写作的合理性。（6）最后，要保证写作内容的逻辑性，可读性，一致性，学术性。要符合发表在高分SCI期刊的protocol的要求。`,
+                dataMonitoring: `设计一个RCT，评估${interventionInput}治疗${diseaseInput}的疗效。我的主要结局变量是${outcomeInput}。我的治疗组是${interventionInput}，我的对照组是${controlInput}。现在，进行“数据收集与监控以及研究安全性”部分的撰写。我将给出一系列的要求和资料，帮助你更好的进行任务的完成。1. 我打算开展的研究是一个单中心，样本量有限；2，数据收集与质量控制要用一些先进的计算机技术人员管理制度以及完成，要显得高大上；3. 研究的安全性要结合既往同类研究对可能出现的不良时间及应对进行描述。对研究的安全性以及质量监控委员会进行描述。4）尽可能引用相关指南或文献,以支持写作的合理性。（5）最后，要保证写作内容的逻辑性，可读性，一致性，学术性。要符合发表在高分SCI期刊的protocol的要求。`,
+                statistics: `设计一个RCT，评估${interventionInput}治疗${diseaseInput}的疗效。我的主要结局变量是${outcomeInput}。我的治疗组是${interventionInput}，我的对照组是${controlInput}。现在，进行“统计分析”部分的撰写。我将给出一系列的要求和资料，帮助你更好的进行任务的完成。1. 我打算开展的研究是一个单中心，样本量有限；2，撰写分析原则。以既往同类研究为基础，并结合自身的实际条件，选择分析原则（ITT或者/PP）；3）撰写统计学分析方法，包括①连续/分类变量描述，②以处理方式作为分组，不同组间的连续变量/分类变量的比较要用哪些统计学方法，③而主要/次要结局比较的统计检验用何种方法最合适，④缺失数据处理，⑤亚组分析，⑥敏感性分析（ITT/PP/中心效应分析等。撰写的时候，要先结合既往同类研究在结合实际情况判定应该选用哪些敏感性分析；4）最后，要保证写作内容的逻辑性，可读性，一致性，学术性。要符合发表在高分SCI期刊的protocol的要求。`,
+                ethicsAndCommunication: `撰写“伦理与传播”。确保符合方法学规范，确保写清楚改写的细节。确保内容的完整性，逻辑性，可读性，学术性。`
+            };
+
+            document.getElementById('promptText').innerText = prompts[type];
+            document.getElementById('myModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('myModal').style.display = 'none';
+        }
+
+        function copyPrompt() {
+            var promptText = document.getElementById('promptText').innerText;
+            var tempInput = document.createElement('textarea');
+            tempInput.value = promptText;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+            alert('提示词已复制成功！');
+        }
+
+        function createStars() {
+            var numStars = 100;
+            var container = document.body;
+            for (var i = 0; i < numStars; i++) {
+                var star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + 'vw';
+                star.style.top = Math.random() * 100 + 'vh';
+                star.style.animationDelay = Math.random() * 2 + 's';
+                container.appendChild(star);
+            }
+        }
+
+        createStars();
+    </script>
+</body>
+</html>

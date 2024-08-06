@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>protocol-讨论部分-RCT</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+        .logo {
+            font-size: 2em;
+            margin-bottom: 20px;
+            z-index: 1;
+            color: gold;
+            text-shadow: 0 0 10px gold, 0 0 20px gold, 0 0 30px gold;
+        }
+        .title {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            z-index: 1;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 1em;
+            border: none;
+            border-radius: 5px;
+            background-color: gold;
+            cursor: pointer;
+            transition: transform 0.3s;
+            z-index: 1;
+            margin: 10px;
+        }
+        button:hover {
+            transform: scale(1.1);
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0,0,0);
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 600px;
+            color: black;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .copy-button {
+            margin-top: 10px;
+        }
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background-color: white;
+            border-radius: 50%;
+            opacity: 0;
+            animation: twinkle 2s infinite;
+        }
+        @keyframes twinkle {
+            0% { opacity: 0; }
+            50% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="logo">易AI</div>
+    <div class="title">protocol-讨论部分-队列</div>
+    <div>
+        <button onclick="generateText()">生成提示词</button>
+    </div>
+
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <p id="promptText"></p>
+            <button class="copy-button" onclick="copyPrompt()">复制</button>
+        </div>
+    </div>
+
+    <script>
+        function generateText() {
+            const prompt = `撰写discussion部分,必须包含下列要点：总结研究的主要目的和意义、简要回顾研究的背景和目标,阐明研究的重要性和创新性。概括性地描述研究设计、样本特征、主要测量指标和。
+分析本队列的局限性和优势。局限性的分析要客观，如样本代表性、缺失数据等。强调研究的优势,如标准化方法、完整的数据收集等。探讨研究结果在临床实践中的应用价值和意义。提出未来需要进一步探索的研究问题和方向。
+
+注意：逻辑性和条理性,段落转换自然流畅。
+客观中肯,避免主观臆断。
+结合研究目标和研究问题,突出重点。
+引用相关文献佐证,与已有研究进行对比。
+讨论研究局限性,但不要过度强调。`;
+
+            document.getElementById('promptText').innerText = prompt;
+            document.getElementById('myModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('myModal').style.display = 'none';
+        }
+
+        function copyPrompt() {
+            const promptText = document.getElementById('promptText').innerText;
+            const tempInput = document.createElement('textarea');
+            tempInput.value = promptText;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+            alert('提示词已复制成功！');
+        }
+
+        function createStars() {
+            const numStars = 100;
+            const container = document.body;
+            for (let i = 0; i < numStars; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = `${Math.random() * 100}vw`;
+                star.style.top = `${Math.random() * 100}vh`;
+                star.style.animationDelay = `${Math.random() * 2}s`;
+                container.appendChild(star);
+            }
+        }
+
+        createStars();
+    </script>
+</body>
+</html>

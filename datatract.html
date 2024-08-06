@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>非机构化数据提取</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+        .logo {
+            font-size: 2em;
+            margin-bottom: 20px;
+            z-index: 1;
+            color: gold;
+            text-shadow: 0 0 10px gold, 0 0 20px gold, 0 0 30px gold;
+        }
+        .container {
+            width: 80%;
+            margin: 0 auto;
+            z-index: 1;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        #frequencyList {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            color: white;
+        }
+        #frequencyList li {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        #frequencyList input[type="checkbox"] {
+            margin-right: 10px;
+        }
+        #frequencyList select {
+            margin-left: 10px;
+            display: none;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 1em;
+            border: none;
+            border-radius: 20px;
+            background-color: gold;
+            cursor: pointer;
+            transition: transform 0.3s;
+            z-index: 1;
+            margin: 10px;
+        }
+        button:hover {
+            transform: scale(1.1);
+        }
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background-color: white;
+            border-radius: 50%;
+            opacity: 0;
+            animation: twinkle 2s infinite;
+        }
+        @keyframes twinkle {
+            0% { opacity: 0; }
+            50% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="logo">易AI</div>
+    <div class="container">
+        <h1>非结构化数据提取</h1>
+        <div class="form-group">
+            <input type="file" id="fileInput" accept=".csv, .xls, .xlsx">
+        </div>
+        <div class="form-group">
+            <button id="readButton">读取文件</button>
+        </div>
+        <div class="form-group">
+            <label for="idSelect">ID</label>
+            <select id="idSelect"></select>
+        </div>
+        <div class="form-group">
+            <label for="timeSelect">检测时间</label>
+            <select id="timeSelect"></select>
+        </div>
+        <div class="form-group">
+            <label for="projectSelect">检测项目名称</label>
+            <select id="projectSelect"></select>
+        </div>
+        <div class="form-group">
+            <label for="resultSelect">结果</label>
+            <select id="resultSelect"></select>
+        </div>
+        <div class="form-group">
+            <button id="countButton">显示检查项目名及频数</button>
+        </div>
+        <div class="form-group">
+            <ul id="frequencyList"></ul>
+        </div>
+        <div class="form-group">
+            <button id="exportButton">提取数据</button>
+        </div>
+    </div>
+
+    <!-- 引入SheetJS和PapaParse库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+
+    <script>
+        let parsedData = null;
+        let headers = null;
+        let selectedProjects = {};
+
+        document.getElementById('readButton').addEventListener('click', function() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            if (!file) {
+                alert('请选择一个文件');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                let workbook;
+                if (file.name.endsWith('.csv')) {
+                    const csvData = Papa.parse(new TextDecoder("utf-8").decode(data), { header: true });
+                    parsedData = csvData.data;
+                    headers = csvData.meta.fields;
+                    populateDropdowns(headers);
+                } else {
+                    workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    parsedData = XLSX.utils.sheet_to_json(worksheet);
+                    headers = XLSX.utils.sheet_to_json(worksheet, { header: 1 })[0];
+                    populateDropdowns(headers);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        function populateDropdowns(headers) {
+            const dropdowns = ['idSelect', 'timeSelect', 'projectSelect', 'resultSelect'];
+            dropdowns.forEach(dropdownId => {
+                const dropdown = document.getElementById(dropdownId);
+                dropdown.innerHTML = '';
+                headers.forEach(header => {
+                    const option = document.createElement('option');
+                    option.value = header;
+                    option.textContent = header;
+                    dropdown.appendChild(option);
+                });
+            });
+        }
+
+        document.getElementById('countButton').addEventListener('click', function() {
+            const projectSelect = document.getElementById('projectSelect');
+            const selectedProject = projectSelect.value;
+            if (!selectedProject) {
+                alert('请选择一个检测项目名称');
+                return;
+            }
+
+            const frequencyMap = {};
+            parsedData.forEach(row => {
+                const projectName = row[selectedProject];
+                if (frequencyMap[projectName]) {
+                    frequencyMap[projectName]++;
+                } else {
+                    frequencyMap[projectName] = 1;
+                }
+            });
+
+            const frequencyList = document.getElementById('frequencyList');
+            frequencyList.innerHTML = '';
+            for (const [projectName, count] of Object.entries(frequencyMap)) {
+                const listItem = document.createElement('li');
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.name = 'projectCheckbox';
+                checkbox.value = projectName;
+                checkbox.addEventListener('change', function() {
+                    if (checkbox.checked) {
+                        selectedProjects[projectName] = { select: select, values: [] };
+                        select.style.display = 'inline-block';
+                    } else {
+                        delete selectedProjects[projectName];
+                        select.style.display = 'none';
+                    }
+                });
+                listItem.appendChild(checkbox);
+                listItem.appendChild(document.createTextNode(`${projectName} (${count})`));
+
+                const select = document.createElement('select');
+                const options = ['提取基线', '提取最大值', '提取最小值', '提取均数', '提取中位数', '提取ROC曲线下面积', '不选择，导出重复测量数据'];
+                options.forEach(optionText => {
+                    const option = document.createElement('option');
+                    option.value = optionText;
+                    option.textContent = optionText;
+                    select.appendChild(option);
+                });
+                listItem.appendChild(select);
+
+                frequencyList.appendChild(listItem);
+            }
+        });
+
+        document.getElementById('exportButton').addEventListener('click', function() {
+            if (Object.keys(selectedProjects).length === 0) {
+                alert('请选择至少一个检测项目');
+                return;
+            }
+
+            const idSelect = document.getElementById('idSelect').value;
+            const timeSelect = document.getElementById('timeSelect').value;
+            const resultSelect = document.getElementById('resultSelect').value;
+
+            const exportData = {};
+            parsedData.forEach(row => {
+                const id = row[idSelect];
+                const time = row[timeSelect];
+                const project = row[document.getElementById('projectSelect').value];
+                const result = row[resultSelect];
+
+                if (!exportData[id]) {
+                    exportData[id] = { [timeSelect]: time };
+                }
+
+                for (const [projectName, config] of Object.entries(selectedProjects)) {
+                    if (project === projectName) {
+                        if (!exportData[id][projectName]) {
+                            exportData[id][projectName] = [];
+                        }
+                        exportData[id][projectName].push({ time, result });
+                    }
+                }
+            });
+
+            const csvRows = [];
+            const headerRow = [idSelect, timeSelect, ...Object.keys(selectedProjects)];
+            csvRows.push(headerRow.join(','));
+
+            for (const [id, data] of Object.entries(exportData)) {
+                const row = [id, data[timeSelect]];
+                for (const [projectName, config] of Object.entries(selectedProjects)) {
+                    const values = data[projectName];
+                    let value;
+                    switch (config.select.value) {
+                        case '提取基线':
+                            value = values.sort((a, b) => new Date(a.time) - new Date(b.time))[0].result;
+                            break;
+                        case '提取最大值':
+                            value = Math.max(...values.map(v => v.result));
+                            break;
+                        case '提取最小值':
+                            value = Math.min(...values.map(v => v.result));
+                            break;
+                        case '提取均数':
+                            value = values.reduce((a, b) => a + b.result, 0) / values.length;
+                            break;
+                        case '提取中位数':
+                            const sortedValues = values.map(v => v.result).sort((a, b) => a - b);
+                            const mid = Math.floor(sortedValues.length / 2);
+                            value = sortedValues.length % 2 !== 0 ? sortedValues[mid] : (sortedValues[mid - 1] + sortedValues[mid]) / 2;
+                            break;
+                        case '提取ROC曲线下面积':
+                            value = 'N/A'; // 这里需要实现ROC曲线下面积的计算
+                            break;
+                        case '不选择，导出重复测量数据':
+                            // 导出重复测量数据为纵向结构
+                            values.sort((a, b) => new Date(a.time) - new Date(b.time)).forEach((v, index) => {
+                                if (index === 0) {
+                                    row.push(v.result);
+                                } else {
+                                    const newRow = [id, v.time];
+                                    newRow.push(v.result);
+                                    csvRows.push(newRow.join(','));
+                                }
+                            });
+                            value = '';
+                            break;
+                        default:
+                            value = '';
+                    }
+                    if (value !== '') {
+                        row.push(value);
+                    }
+                }
+                csvRows.push(row.join(','));
+            }
+
+            const csvContent = csvRows.join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'exported_data.csv';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+
+        function createStars() {
+            const numStars = 100;
+            const container = document.body;
+            for (let i = 0; i < numStars; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = `${Math.random() * 100}vw`;
+                star.style.top = `${Math.random() * 100}vh`;
+                star.style.animationDelay = `${Math.random() * 2}s`;
+                container.appendChild(star);
+            }
+        }
+
+        createStars();
+    </script>
+</body>
+</html>

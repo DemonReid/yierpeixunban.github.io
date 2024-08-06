@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>提示词生成器--Introduction部分</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        #output {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>提示词生成器-introduction部分</h1>
+
+    <label for="exposure">暴露变量：</label>
+    <input type="text" id="exposure" placeholder="例如：基线血小板计数，基线FEV1">
+
+    <label for="outcome">结局变量：</label>
+    <input type="text" id="outcome" placeholder="例如：全因死亡，是否复发等">
+
+    <label for="time">结局变量时间范围：</label>
+    <input type="text" id="time" placeholder="例如：1年，5年，住院期间，28天，用以和结局变量进行联系，例如28天全因死亡">
+
+    <label for="population">研究人群：</label>
+    <input type="text" id="population" placeholder="人群指队列特征，即你所有的患者有和共同特征，例如：中国肠癌患者且接受奥沙利铂化疗治疗">
+
+    <label for="type">研究类型：</label>
+    <input type="text" id="type" placeholder="例如：回顾性队列研究，前瞻性队列研究，横断面研究，病例对照研究，RCT等">
+
+    <label for="status">研究现状：</label>
+    <textarea id="status" placeholder="请输入研究现状总结"></textarea>
+
+    <button id="generate">生成提示词</button>
+    <button id="clear">清除</button>
+
+    <div id="output"></div>
+
+    <script>
+        const exposureInput = document.getElementById("exposure");
+        const outcomeInput = document.getElementById("outcome");
+        const timeInput = document.getElementById("time");
+        const populationInput = document.getElementById("population");
+        const typeInput = document.getElementById("type");
+        const statusInput = document.getElementById("status");
+        const generateButton = document.getElementById("generate");
+        const clearButton = document.getElementById("clear");
+        const outputDiv = document.getElementById("output");
+
+        generateButton.addEventListener("click", () => {
+            const exposure = exposureInput.value;
+            const outcome = outcomeInput.value;
+            const time = timeInput.value;
+            const population = populationInput.value;
+            const type = typeInput.value;
+            const status = statusInput.value;
+
+            const prompt = `我的暴露变量是${exposure}，我的结局变量是${outcome}，结局变量的时间范围是${time}，研究人群是${population}，研究类型是${type}。现在，帮我撰写前言：第一段写作内容要包括研究人群的发病率以及结局变量的发生率，这些内容必须来自真实的文献，期限为近5年的，特别关注全球范围内和中国的具体数据。第二段写作内容包括暴露变量的定义，作用以及和原理，并描述其与其他疾病的发病率和不良预后之间的关系。这些内容的来源参考文献必须真实, 优先引用近5年内的文献, 并确保参考文献的多样性和权威性。任何无法查询或验证的观点和文献应明确说明没有相关证据, 不得虚构。第三段写作内容主要包括对暴露变量与结局变量现状的总结，内容如下：“${status}”。要对这些内容进行精炼，归纳总结，务必保证简洁性，条理性，逻辑性，学术性。如果存在争议，要对争议进行概述。第四段：说明我们打算用什么样的研究类型在什么样的人群中对暴露以及结局的关联进行评估，说明研究的重要性，阐明研究目的和意义，并强调研究结果将为现有文献或临床实践带来的贡献，此外，对研究的设计和方法的独特之处要进行描述。
+最后，根据 STROBE（Strengthening the Reporting of Observational Studies in Epidemiology）指南对前言进行形式和内容上的修订，保证最终呈现的前言的拼写，语法，清晰度，简洁性和整体可读性，同时分解长句，减少重复。要求使用简洁、学术化的语言，避免冗长的描述，并保证句子完整、通顺、自然。同时，对整个前言部分进行评估，找出句子之间的流畅性或联系可以改进的地方，以提高内容的整体质量和可读性。此外，增加深度与原创性，描述要生动，吸引读者，逻辑衔接要清晰，各个部分之间要有紧密的联系。将经过上述步骤处理的最终前言内容以中文呈现出来。`;
+
+            outputDiv.textContent = prompt;
+        });
+
+        clearButton.addEventListener("click", () => {
+            exposureInput.value = "";
+            outcomeInput.value = "";
+            timeInput.value = "";
+            populationInput.value = "";
+            typeInput.value = "";
+            statusInput.value = "";
+            outputDiv.textContent = "";
+        });
+    </script>
+
+</body>
+</html>

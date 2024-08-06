@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>易AI - Protocol前言提示词-RCT</title>
+    <style>
+        @font-face {
+            font-family: 'Oracle';
+            src: url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@700&display=swap');
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            background-color: black;
+            color: white;
+            overflow: hidden;
+        }
+
+        .logo {
+            font-family: 'Oracle', sans-serif;
+            font-size: 48px;
+            font-weight: bold;
+            color: #FFD700;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px #FFD700, 0 0 20px #FFD700, 0 0 30px #FFD700;
+        }
+
+        .input-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 20px; /* 增加输入框之间的间距 */
+        }
+
+        .input-container input {
+            width: 300px; /* 增加输入框的宽度 */
+            padding: 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: rgba(51, 51, 51, 0.8);
+            color: white;
+            box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+            transition: box-shadow 0.3s;
+        }
+
+        .input-container input:focus {
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.8); /* 金色边框 */
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        button:hover {
+            background-color: #45a049;
+            transform: scale(1.05); /* 按钮放大效果 */
+        }
+
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background-color: white;
+            border-radius: 50%;
+            opacity: 0;
+            animation: twinkle 2s infinite;
+        }
+
+        @keyframes twinkle {
+            0% { opacity: 0; }
+            50% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0,0,0);
+            background-color: rgba(0,0,0,0.4);
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            color: black;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        textarea {
+            width: 100%;
+            height: 200px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="logo">易AI</div>
+    <h1>数据库构建提示词</h1>
+    <div class="input-container">
+        <input type="text" id="accountInput" placeholder="账号设置">
+        <input type="text" id="passwordInput" placeholder="密码设置">
+        <input type="text" id="databaseNameInput" placeholder="数据库名称">
+        <input type="text" id="tableCountInput" placeholder="表单数">
+        <input type="text" id="tableNamesInput" placeholder="表单名称（用、进行分隔）">
+        <input type="text" id="fieldDefinitionsInput" placeholder="表单内包含的变量信息">
+    </div>
+    <button onclick="showExample()">表单内容填写示例</button>
+    <button onclick="generatePrompt()">生成提示词</button>
+
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <textarea id="promptContentTextarea"></textarea>
+            <button onclick="copyToClipboard()">复制内容</button>
+        </div>
+    </div>
+
+    <script>
+        function showExample() {
+            var exampleContent = `亲爱的用户，请根据我们的示例在输入框中输入字段。假设现在我们有两个表单，分别是基线资料，实验室检查，那我们在输入框中可以如下输入：
+基线资料表单：
+数字填空题：身高（cm），体重（kg）
+单选题：性别（男/女），受教育程度（小学/初中/高中/大学及以上）
+多选题：共病（高血压，糖尿病，心血管疾病，中风）
+日期型：入院时间、出院时间
+实验室检查表单：
+数字填空题：红细胞分布宽度，血常规
+单选题：M蛋白是否阳性（阳性/阴性）
+多选题：白血病基因表型（q12，del（13），inv（17））
+日期型：检查时间`;
+            alert(exampleContent);
+        }
+
+        function generatePrompt() {
+            var accountInput = document.getElementById("accountInput").value;
+            var passwordInput = document.getElementById("passwordInput").value;
+            var databaseNameInput = document.getElementById("databaseNameInput").value;
+            var tableCountInput = document.getElementById("tableCountInput").value;
+            var tableNamesInput = document.getElementById("tableNamesInput").value;
+            var fieldDefinitionsInput = document.getElementById("fieldDefinitionsInput").value;
+
+            var promptContent = `项目要求：构建一个本地数据库系统
+
+功能需求：
+
+登录页面设计：
+创建一个美观的登录页面，用户只能通过输入以下账号和密码登录:
+账号:【${accountInput}】
+密码:【${passwordInput}】
+页面上展示Logo：【${databaseNameInput}】，字体为红色，视觉上呈现动态金光效果，背景为黑色，并随机生成动态星星。
+
+输入框布局：
+登录页面的账号和密码输入框应水平居中，并分为上下两行排列。
+输入框应具有圆角边框，尺寸尽量大，尽量保持两者间隔适当。
+
+数据库表单设计：
+包含【${tableCountInput}】个表单: 名称分别为【${tableNamesInput}】
+
+表单中包含的录入信息内容: 包括【${fieldDefinitionsInput}】
+
+导航与表单切换:
+通过站内导航实现两个表单的切换，每个表单内容独立显示在不同页面中。
+
+数据管理功能:
+创建按钮“上传数据”，点击后将表单输入存储到localStorage，上传后输入框内容清空。
+多选题以哑变量形式存储，选项状态用0（未选中）和1（选中）表示。
+数据存储为数组，每次上传新数据时追加到数组，不覆盖旧数据。
+
+数据导出功能:
+实现导出所有表单数据为CSV文件，第一行为变量名，后续行为已录入数据。
+不同表单的导出CSV文件应独立，仅包含对应表单的数据。
+
+清除功能:
+提供清除按钮，点击前弹出警告提示“点击此按钮，此前输入的所有内容均删除，请谨慎决定”。
+
+外观要求:
+使用Bootstrap CSS框架构建页面，背景为黑色，有动态随机生成的星星。
+表单选项中心对齐，优化单选和多选框的布局。
+鼠标接近输入框和选择框时，增加发光效果提示用户。
+
+代码结构要求:
+将登录页面与主网页整合为一个文件，确保代码简洁清晰，方便维护。
+对于共用组件（如输入框、选择框），可考虑抽象成可复用的组件。
+
+提供所有实现上述功能的代码，并确保代码符合以上要求。`;
+
+            document.getElementById("promptContentTextarea").value = promptContent;
+            document.getElementById("modal").style.display = "block";
+        }
+
+        function closeModal() {
+            document.getElementById("modal").style.display = "none";
+        }
+
+        function copyToClipboard() {
+            var copyText = document.getElementById("promptContentTextarea");
+            copyText.select();
+            copyText.setSelectionRange(0, 99999); /* For mobile devices */
+            document.execCommand("copy");
+            alert("内容已复制到剪贴板");
+        }
+
+        function createStars() {
+            var numStars = 100;
+            var container = document.body;
+            for (var i = 0; i < numStars; i++) {
+                var star = document.createElement("div");
+                star.className = "star";
+                star.style.left = Math.random() * 100 + "vw";
+                star.style.top = Math.random() * 100 + "vh";
+                star.style.animationDelay = Math.random() * 2 + "s";
+                container.appendChild(star);
+            }
+        }
+
+        createStars();
+    </script>
+</body>
+</html>

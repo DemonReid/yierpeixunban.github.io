@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>protocol-题目及摘要-RCT</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+        .logo {
+            font-size: 2em;
+            margin-bottom: 20px;
+            z-index: 1;
+            color: gold;
+            text-shadow: 0 0 10px gold, 0 0 20px gold, 0 0 30px gold;
+        }
+        .title {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            z-index: 1;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 1em;
+            border: none;
+            border-radius: 20px;
+            background-color: gold;
+            cursor: pointer;
+            transition: transform 0.3s;
+            z-index: 1;
+            margin: 10px;
+        }
+        button:hover {
+            transform: scale(1.1);
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0,0,0);
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            border-radius: 20px;
+            width: 80%;
+            max-width: 600px;
+            color: black;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .copy-button {
+            margin-top: 10px;
+            border-radius: 20px;
+        }
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background-color: white;
+            border-radius: 50%;
+            opacity: 0;
+            animation: twinkle 2s infinite;
+        }
+        @keyframes twinkle {
+            0% { opacity: 0; }
+            50% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        .input-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .input-container input {
+            margin: 10px 0;
+            padding: 10px;
+            width: 250px;
+            border-radius: 20px;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="logo">易AI</div>
+    <div class="title">protocol-题目及摘要-RCT</div>
+    <div class="input-container">
+        <input type="text" id="treatmentGroup" placeholder="处理组名称">
+        <input type="text" id="diseaseName" placeholder="疾病名称">
+        <input type="text" id="outcomeName" placeholder="研究结局名称">
+        <input type="text" id="studyType" placeholder="研究类型">
+    </div>
+    <button onclick="generateText()">生成题目提示词</button>
+    <button onclick="generateSummaryPrompt()">生成摘要提示词</button>
+
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <p id="promptText"></p>
+            <button class="copy-button" onclick="copyPrompt()">复制</button>
+        </div>
+    </div>
+
+    <script>
+        function generateText() {
+            const treatmentGroup = document.getElementById('treatmentGroup').value;
+            const diseaseName = document.getElementById('diseaseName').value;
+            const outcomeName = document.getElementById('outcomeName').value;
+            const studyType = document.getElementById('studyType').value;
+
+            const prompt = `撰写十个题目，其中必须包括【${treatmentGroup}】，【${diseaseName}】，【${outcomeName}】，【${studyType}】。且必须要说明这就是一个“protocol”。中英双语呈现。`;
+
+            const recommendedPrompt = `设计一个${studyType}研究protocol，评估${treatmentGroup}对${diseaseName}患者${outcomeName}的影响。`;
+
+            const promptText = `推荐的最优题目：\n${recommendedPrompt}\n\n理由：该题目简洁明了地概括了研究的主要内容，包括处理组名称、疾病名称、研究结局名称和研究类型，同时明确指出这是一个protocol，符合要求。\n\n${prompt}`;
+
+            document.getElementById('promptText').innerText = promptText;
+            document.getElementById('myModal').style.display = 'block';
+        }
+
+        function generateSummaryPrompt() {
+            const summaryPrompt = "撰写摘要，包括背景，方法，讨论。字数控制在250字。";
+            document.getElementById('promptText').innerText = summaryPrompt;
+            document.getElementById('myModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('myModal').style.display = 'none';
+        }
+
+        function copyPrompt() {
+            const promptText = document.getElementById('promptText').innerText;
+            const tempInput = document.createElement('textarea');
+            tempInput.value = promptText;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+            alert('提示词已复制成功！');
+        }
+
+        function createStars() {
+            const numStars = 100;
+            const container = document.body;
+            for (let i = 0; i < numStars; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = `${Math.random() * 100}vw`;
+                star.style.top = `${Math.random() * 100}vh`;
+                star.style.animationDelay = `${Math.random() * 2}s`;
+                container.appendChild(star);
+            }
+        }
+
+        createStars();
+    </script>
+</body>
+</html>

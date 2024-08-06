@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>易AI：让你获得科研超能力</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+    <style>
+        @keyframes glow {
+            from {
+                text-shadow: 0 0 10px #FFD700, 0 0 20px #FFD700, 0 0 30px #FFD700, 0 0 40px #FFD700, 0 0 50px #FFD700, 0 0 60px #FFD700, 0 0 70px #FFD700;
+            }
+            to {
+                text-shadow: 0 0 20px #FF8C00, 0 0 30px #FF8C00, 0 0 40px #FF8C00, 0 0 50px #FF8C00, 0 0 60px #FF8C00, 0 0 70px #FF8C00, 0 0 80px #FF8C00;
+            }
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #000000; /* 黑色背景 */
+            margin: 0;
+            padding: 0;
+            color: #fff;
+            text-align: center;
+        }
+        h1 {
+            margin-top: 50px;
+            font-size: 2.5em;
+            color: #FFD700;
+            text-shadow: 2px 2px 4px #000000;
+        }
+        h2 {
+            margin-top: 20px;
+            font-size: 2em;
+            color: #FFD700;
+            text-shadow: 2px 2px 4px #000000;
+        }
+        input[type="file"] {
+            margin: 20px 0;
+        }
+        button {
+            margin: 10px;
+            padding: 15px 30px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 50px;
+            background: linear-gradient(45deg, #FF3CAC, #784BA0, #2B86C5);
+            color: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        #output {
+            margin: 20px 0;
+            color: #FFD700;
+            text-shadow: 1px 1px 2px #000000;
+        }
+        .variable-list {
+            text-align: left;
+            display: inline-block;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            margin: 10px;
+            border: 1px solid #FFD700;
+        }
+        .variable-list label {
+            display: block;
+            margin: 5px 0;
+        }
+        .variable-list input[type="checkbox"]:checked + span,
+        .variable-list input[type="radio"]:checked + span {
+            color: #FF4500;
+            text-shadow: 0 0 5px #FF4500, 0 0 10px #FF4500, 0 0 15px #FF4500;
+        }
+        .variable-list input[type="checkbox"]:checked,
+        .variable-list input[type="radio"]:checked {
+            outline: 2px solid #FF4500;
+        }
+    </style>
+</head>
+<body>
+    <h1>易AI：让你获得科研超能力</h1>
+    <h2>数据合并</h2>
+    <input type="file" id="fileInput" multiple>
+    <br><br>
+    <button onclick="showHorizontalMergeOptions()">横向合并</button>
+    <button onclick="showVerticalMergeOptions()">纵向合并</button>
+    <br><br>
+    <div id="output"></div>
+
+    <script>
+        let filesData = [];
+        let headers = new Set();
+        let fileHeaders = [];
+
+        document.getElementById('fileInput').addEventListener('change', handleFileSelect, false);
+
+        function handleFileSelect(event) {
+            const files = event.target.files;
+            filesData = [];
+            headers.clear();
+            fileHeaders = [];
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const content = e.target.result;
+                    const data = Papa.parse(content, { header: true });
+                    filesData.push(data);
+                    const currentHeaders = new Set(data.meta.fields);
+                    fileHeaders.push({ fileName: file.name, headers: Array.from(currentHeaders) });
+                    currentHeaders.forEach(header => headers.add(header));
+                };
+                reader.readAsText(file);
+            });
+        }
+
+        function showHorizontalMergeOptions() {
+            if (filesData.length === 0) {
+                alert('请先上传文件。');
+                return;
+            }
+            const output = document.getElementById('output');
+            output.innerHTML = '<h3>选择用于横向合并的唯一ID编码：</h3>';
+            output.innerHTML += '<div id="chosenId"></div>';
+            fileHeaders.forEach(file => {
+                output.innerHTML += `<div class="variable-list"><h4>${file.fileName}</h4>` + file.headers.map(header => 
+                    `<label><input type="radio" name="uniqueId" value="${header}" onclick="selectUniqueId('${header}')"> <span>${header}</span></label>`).join('') + '</div>';
+            });
+            output.innerHTML += '<br><button onclick="mergeFilesHorizontally()">开始横向合并</button>';
+        }
+
+        function showVerticalMergeOptions() {
+            if (filesData.length === 0) {
+                alert('请先上传文件。');
+                return;
+            }
+            const output = document.getElementById('output');
+            output.innerHTML = '<h3>选择用于纵向合并的变量：</h3>';
+            fileHeaders.forEach(file => {
+                output.innerHTML += `<div class="variable-list"><h4>${file.fileName}</h4>` + file.headers.map(header => 
+                    `<label><input type="checkbox" name="mergeVars" value="${header}" onclick="highlightSelection(this)"> <span>${header}</span></label>`).join('') + '</div>';
+            });
+            output.innerHTML += '<br><button onclick="mergeFilesVertically()">开始纵向合并</button>';
+        }
+
+        function selectUniqueId(header) {
+            const radios = document.querySelectorAll('input[name="uniqueId"]');
+            radios.forEach(radio => {
+                if (radio.value === header) {
+                    radio.checked = true;
+                }
+            });
+            document.getElementById('chosenId').innerHTML = `您选择的用于横向合并的唯一ID编码是 "${header}"`;
+        }
+
+        function highlightSelection(input) {
+            const span = input.nextElementSibling;
+            if (input.checked) {
+                span.style.color = '#FF4500';
+                span.style.textShadow = '0 0 5px #FF4500, 0 0 10px #FF4500, 0 0 15px #FF4500';
+                input.style.outline = '2px solid #FF4500';
+            } else {
+                span.style.color = '';
+                span.style.textShadow = '';
+                input.style.outline = '';
+            }
+        }
+
+        function mergeFilesHorizontally() {
+            const uniqueId = document.querySelector('input[name="uniqueId"]:checked');
+            if (!uniqueId) {
+                alert('请选择一个唯一ID编码。');
+                return;
+            }
+            const idField = uniqueId.value;
+            const mergedData = [];
+            const headers = new Set();
+            const idMap = new Map();
+
+            filesData.forEach(file => {
+                file.data.forEach(row => {
+                    const id = row[idField];
+                    if (!idMap.has(id)) {
+                        idMap.set(id, {});
+                    }
+                    Object.assign(idMap.get(id), row);
+                    Object.keys(row).forEach(header => headers.add(header));
+                });
+            });
+
+            const rows = Array.from(idMap.values());
+            const csv = Papa.unparse({
+                fields: Array.from(headers),
+                data: rows
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            saveAs(blob, 'merged_horizontally.csv');
+
+            showEffect();
+        }
+
+        function mergeFilesVertically() {
+            const selectedVars = Array.from(document.querySelectorAll('input[name="mergeVars"]:checked')).map(input => input.value);
+            if (selectedVars.length === 0) {
+                alert('请选择至少一个变量。');
+                return;
+            }
+
+            const mergedData = [];
+            filesData.forEach(file => {
+                file.data.forEach(row => {
+                    const filteredRow = {};
+                    selectedVars.forEach(varName => {
+                        filteredRow[varName] = row[varName];
+                    });
+                    mergedData.push(filteredRow);
+                });
+            });
+
+            const csv = Papa.unparse({
+                fields: selectedVars,
+                data: mergedData
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            saveAs(blob, 'merged_vertically.csv');
+
+            showEffect();
+        }
+
+        function showEffect() {
+            const output = document.getElementById('output');
+            output.innerHTML = '<h3>合并成功!</h3>';
+            output.innerHTML += '<p>文件已导出。</p>';
+            output.style.animation = 'glow 2s infinite alternate';
+
+            setTimeout(() => {
+                output.style.animation = '';
+                output.innerHTML = '';
+            }, 4000);
+        }
+    </script>
+</body>
+</html>

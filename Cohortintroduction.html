@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>protocol-讨论部分-RCT</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+        .logo {
+            font-size: 2em;
+            margin-bottom: 20px;
+            z-index: 1;
+            color: gold;
+            text-shadow: 0 0 10px gold, 0 0 20px gold, 0 0 30px gold;
+        }
+        .title {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            z-index: 1;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 1em;
+            border: none;
+            border-radius: 20px;
+            background-color: gold;
+            cursor: pointer;
+            transition: transform 0.3s;
+            z-index: 1;
+            margin: 10px;
+        }
+        button:hover {
+            transform: scale(1.1);
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0,0,0);
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            border-radius: 20px;
+            width: 80%;
+            max-width: 600px;
+            color: black;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .copy-button {
+            margin-top: 10px;
+            border-radius: 20px;
+        }
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background-color: white;
+            border-radius: 50%;
+            opacity: 0;
+            animation: twinkle 2s infinite;
+        }
+        @keyframes twinkle {
+            0% { opacity: 0; }
+            50% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        .input-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .input-container input {
+            margin: 10px 0;
+            padding: 10px;
+            width: 250px;
+            border-radius: 20px;
+            border: none;
+        }
+        .radio-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .radio-container label {
+            margin: 0 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="logo">易AI</div>
+    <div class="title">protocol-前言部分-前瞻性多中心队列</div>
+    <div class="input-container">
+        <input type="text" id="diseaseName" placeholder="疾病名称，例如：COPD">
+        <input type="text" id="region" placeholder="地区，例如：贵州">
+    </div>
+    <div class="radio-container">
+        <label><input type="radio" name="studyType" value="前瞻性"> 前瞻性</label>
+        <label><input type="radio" name="studyType" value="回顾性"> 回顾性</label>
+    </div>
+    <div class="radio-container">
+        <label><input type="radio" name="centerType" value="单中心"> 单中心</label>
+        <label><input type="radio" name="centerType" value="多中心"> 多中心</label>
+    </div>
+    <button onclick="generateText()">生成提示词</button>
+
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <p id="promptText"></p>
+            <button class="copy-button" onclick="copyPrompt()">复制</button>
+        </div>
+    </div>
+
+    <script>
+        function generateText() {
+            const diseaseName = document.getElementById('diseaseName').value;
+            const region = document.getElementById('region').value;
+            const studyType = document.querySelector('input[name="studyType"]:checked').value;
+            const centerType = document.querySelector('input[name="centerType"]:checked').value;
+
+            const prompt = `我要撰写一个关于在【${region}】地区构建【${studyType}】【${centerType}】${diseaseName}队列研究的protocol，现在，正在撰写前言部分。现在，帮我撰写前言，撰写要点如下：在撰写关于【${diseaseName}】的队列研究前言时,请包括以下要素:首先阐述【${diseaseName}】的流行病学背景,包括发病率趋势和对不同人群的影响，尤其是对中国人群的影响，要列出具体数据，显得更有说服力。接着探讨早期诊断和治疗方法的进步如何改善了患者的生存率或生活质量,并讨论这一变化对患者群体和医疗系统的意义，同样要列出具体的内容和证据。重点关注患者面临的挑战（根据所研究疾病特点而定。如果研究疾病为慢性病，则需特别是长期健康问题和社会支持需求,以及疾病相关的治疗后遗症及其对心理社会生活的影响）。分析现有研究的局限性,如缺乏大规模和长期随访数据,以及现有数据无法充分反映症状随时间的变化，在分析时，要有具体的内容和数据作为支撑。在此背景下,阐述新队列研究的目标,包括识别影响长期预后的关键因素,并描述症状的发生率及其心理社会经济影响。最后概述研究设计、多学科合作的重要性,以及研究结果如何有助于改善临床实践和政策制定。写作的时候要加入参考文献，参考文献必须保证是真实的，且文献的引用内容必须与写作内容高度匹配。保证最终呈现的前言的拼写，语法，清晰度，简洁性和整体可读性，同时分解长句，减少重复。要求使用简洁、学术化的语言，避免冗长的描述，并保证句子完整、通顺、自然。同时，对整个前言部分进行评估，找出句子之间的流畅性或联系可以改进的地方，以提高内容的整体质量和可读性。此外，增加深度与原创性，描述要生动，吸引读者，逻辑衔接要清晰，各个部分之间要有紧密的联系。将经过上述步骤处理的最终前言内容以中文呈现出来。`;
+
+            document.getElementById('promptText').innerText = prompt;
+            document.getElementById('myModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('myModal').style.display = 'none';
+        }
+
+        function copyPrompt() {
+            const promptText = document.getElementById('promptText').innerText;
+            const tempInput = document.createElement('textarea');
+            tempInput.value = promptText;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+            alert('提示词已复制成功！');
+        }
+
+        function createStars() {
+            const numStars = 100;
+            const container = document.body;
+            for (let i = 0; i < numStars; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = `${Math.random() * 100}vw`;
+                star.style.top = `${Math.random() * 100}vh`;
+                star.style.animationDelay = `${Math.random() * 2}s`;
+                container.appendChild(star);
+            }
+        }
+
+        createStars();
+    </script>
+</body>
+</html>

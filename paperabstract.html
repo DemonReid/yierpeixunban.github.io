@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>提示词生成器</title>
+    <script>
+        function generatePrompt() {
+            var prompt = "我要撰写摘要部分。分为目的，方法，结果，结论。目的部分要包括研究背景，方法部分要包括暴露变量，结局变量，协变量，时间，地点，样本量，研究人群特征。结果部分要包含最核心的结果，并列出核心结果的效应值和可信区间。最终的摘要字数控制在250个英文字内，保证最终呈现内容的拼写，语法，清晰度，简洁性和整体可读性，同时分解长句，减少重复。要求使用简洁、学术化的语言，避免冗长的描述，并保证句子完整、通顺、自然。同时，对整个内容进行评估，找出句子之间的流畅性或联系可以改进的地方，以提高内容的整体质量和可读性。此外，增加深度与原创性，描述要生动，吸引读者，逻辑衔接要清晰，各个部分之间要有紧密的联系。最后，根据STROBE指南对其进行修订，将经过上述步骤处理的最终内容以中英双语两种格式呈现出来。";
+            document.getElementById("prompt").innerHTML = prompt;
+        }
+
+        function clearPrompt() {
+            document.getElementById("prompt").innerHTML = "";
+        }
+    </script>
+</head>
+<body>
+    <h1>提示词生成器</h1>
+    <button onclick="generatePrompt()">生成摘要提示词</button>
+    <button onclick="clearPrompt()">清除</button>
+    <p id="prompt"></p>
+</body>
+</html>

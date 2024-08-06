@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SCI论文结果写作提示词生成器</title>
+    <style>
+        @font-face {
+            font-family: 'Oracle';
+            src: url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@700&display=swap');
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            background-color: black;
+            color: white;
+            overflow: hidden;
+        }
+
+        .logo {
+            font-family: 'Oracle', sans-serif;
+            font-size: 48px;
+            font-weight: bold;
+            color: #FFD700;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px #FFD700, 0 0 20px #FFD700, 0 0 30px #FFD700;
+        }
+
+        .input-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 20px; /* 增加输入框之间的间距 */
+        }
+
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background-color: white;
+            border-radius: 50%;
+            opacity: 0;
+            animation: twinkle 2s infinite;
+        }
+
+        @keyframes twinkle {
+            0% { opacity: 0; }
+            50% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .input-box {
+            width: 100%;
+            height: 300px;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            resize: vertical;
+        }
+
+        .button-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .button {
+            margin: 10px;
+            padding: 15px 30px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 50px;
+            background: linear-gradient(45deg, #FF3CAC, #784BA0, #2B86C5);
+            color: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 600px;
+            color: black;
+            position: relative;
+        }
+
+        .close {
+            color: #aaa;
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+        }
+
+        .prompt-text {
+            width: 100%;
+            height: 200px;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            resize: vertical;
+            margin-bottom: 20px;
+        }
+
+        .copy-button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #007BFF;
+            color: white;
+            transition: background-color 0.3s ease;
+        }
+
+        .copy-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="logo">SCI论文结果生成器</div>
+    <div class="input-container">
+        <textarea id="inputBox" class="input-box" placeholder="在此输入内容..."></textarea>
+    </div>
+    <div class="button-container">
+        <button id="btn1" class="button">研究人群描述结果</button>
+        <button id="btn2" class="button">回归方程结果</button>
+        <button id="btn3" class="button">饱和阈值效应结果</button>
+        <button id="btn4" class="button">亚组分析结果</button>
+        <button id="btn5" class="button">平滑曲线拟合（含分层平滑曲线拟合）结果提示词</button>
+    </div>
+
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <textarea id="promptText" class="prompt-text" readonly></textarea>
+            <button id="copyButton" class="copy-button">复制</button>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('btn1').addEventListener('click', function() {
+            generatePrompt("研究人群描述结果");
+        });
+
+        document.getElementById('btn2').addEventListener('click', function() {
+            generatePrompt("回归方程结果");
+        });
+
+        document.getElementById('btn3').addEventListener('click', function() {
+            generatePrompt("饱和阈值效应结果");
+        });
+
+        document.getElementById('btn4').addEventListener('click', function() {
+            generatePrompt("亚组分析结果");
+        });
+
+        document.getElementById('btn5').addEventListener('click', function() {
+            generatePrompt("平滑曲线拟合（含分层平滑曲线拟合）结果提示词");
+        });
+
+        function generatePrompt(buttonType) {
+            const inputContent = document.getElementById('inputBox').value;
+            let prompt = "";
+
+            switch (buttonType) {
+                case "研究人群描述结果":
+                    prompt = `根据【${inputContent}】，分两步完成我的任务。第一步：对结果进行解读，使我能理解；第二步：根据第一步的结果解读生成可直接用于高质量SCI论文发表的结果描述。结果描述内容要保证逻辑性，可读性，学术性，要保留必要的统计学结果数值。`;
+                    break;
+                case "回归方程结果":
+                    prompt = `根据【${inputContent}】，分两步完成我的任务。第一步：对结果进行解读，特别是效应值代表的临床意义，使我能理解；第二步：根据第一步生成的结果解读，撰写出可直接用于高质量SCI论文发表的结果描述。结果描述内容要保证逻辑性，可读性，学术性，要写清楚结果效应值的临床意义，并保留必要的统计学数值。`;
+                    break;
+                case "饱和阈值效应结果":
+                    prompt = `根据我的结果【${inputContent}】分两步完成我的任务。第一步：对结果进行解读，特别是效应值所代表的临床意义以及对数似然比p值所代表的临床意义。第二步：根据第一步的结果解读结果撰写出可直接用于高质量SCI论文发表的结果描述。结果描述内容要保证逻辑性，可读性，学术性，要写清楚结果效应值的临床意义，并保留必要的统计学数值，要对“对数似然比P值”结果代表的临床意义进行描述。`;
+                    break;
+                case "亚组分析结果":
+                    prompt = `根据【${inputContent}】，分两步完成我的任务。第一步：对结果进行解读，特别是效应值所代表的临床意义以及交互作用P值所代表的临床意义；第二步：根据第一步的结果解读撰写出可直接用于高质量SCI论文发表的结果描述。结果描述内容要保证逻辑性，可读性，学术性，要写清楚结果效应值的临床意义、交互作用P值的临床意义，并保留必要的统计学数值。`;
+                    break;
+                case "平滑曲线拟合（含分层平滑曲线拟合）结果提示词":
+                    prompt = `对图片内容进行解读，生成下列两项内容：1，针对图片本身代表的临床意义，并生成可直接用于SCI论文发表的结果描述（注：平滑曲线拟合中的三条线分别是95%CI以及横坐标随纵坐标的变化趋势，但如果为分层平滑曲线拟合图，则没有95%CI）；2，生成针对图片的Figure legend, Figure legend的内容水平必须符合发表于“柳叶刀期刊的要求”。`;
+                    break;
+                default:
+                    prompt = "请选择一个有效的按钮。";
+            }
+
+            showModal(prompt);
+        }
+
+        function showModal(prompt) {
+            const modal = document.getElementById("modal");
+            const promptText = document.getElementById("promptText");
+            promptText.value = prompt;
+            modal.style.display = "block";
+
+            document.getElementById("copyButton").addEventListener("click", function() {
+                promptText.select();
+                navigator.clipboard.writeText(promptText.value).then(() => {
+                    alert("提示词已复制到剪贴板");
+                }).catch(err => {
+                    console.error('无法复制文本: ', err);
+                });
+            });
+
+            document.getElementsByClassName("close")[0].addEventListener("click", function() {
+                modal.style.display = "none";
+            });
+        }
+
+        function createStars() {
+            var numStars = 100;
+            var container = document.body;
+            for (var i = 0; i < numStars; i++) {
+                var star = document.createElement("div");
+                star.className = "star";
+                star.style.left = Math.random() * 100 + "vw";
+                star.style.top = Math.random() * 100 + "vh";
+                star.style.animationDelay = Math.random() * 2 + "s";
+                container.appendChild(star);
+            }
+        }
+
+        createStars();
+    </script>
+</body>
+</html>

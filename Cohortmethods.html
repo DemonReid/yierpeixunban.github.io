@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>protocol-讨论部分-RCT</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+        .logo {
+            font-size: 2em;
+            margin-bottom: 20px;
+            z-index: 1;
+            color: gold;
+            text-shadow: 0 0 10px gold, 0 0 20px gold, 0 0 30px gold;
+        }
+        .title {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            z-index: 1;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 1em;
+            border: none;
+            border-radius: 20px;
+            background-color: gold;
+            cursor: pointer;
+            transition: transform 0.3s;
+            z-index: 1;
+            margin: 10px;
+        }
+        button:hover {
+            transform: scale(1.1);
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0,0,0);
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            border-radius: 20px;
+            width: 80%;
+            max-width: 600px;
+            color: black;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .copy-button {
+            margin-top: 10px;
+            border-radius: 20px;
+        }
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background-color: white;
+            border-radius: 50%;
+            opacity: 0;
+            animation: twinkle 2s infinite;
+        }
+        @keyframes twinkle {
+            0% { opacity: 0; }
+            50% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        .input-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .input-container input,
+        .input-container select {
+            margin: 10px;
+            padding: 10px;
+            width: 250px;
+            border-radius: 20px;
+            border: none;
+            background-color: #fff;
+            color: #000;
+        }
+        .radio-container,
+        .checkbox-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .radio-container label,
+        .checkbox-container label {
+            margin: 5px 10px;
+            display: flex;
+            align-items: center;
+        }
+        .radio-container input,
+        .checkbox-container input {
+            margin-right: 5px;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 2px solid #ccc;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        .radio-container input:checked,
+        .checkbox-container input:checked {
+            border-color: gold;
+            background-color: gold;
+        }
+        .radio-container input:hover,
+        .checkbox-container input:hover {
+            border-color: gold;
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        .section-title {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+        .section-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .nav-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            border: 2px solid gold;
+            border-radius: 20px;
+            padding: 10px;
+            background-color: rgba(255, 215, 0, 0.1);
+        }
+        .nav-container a {
+            margin: 0 10px;
+            color: gold;
+            text-decoration: none;
+            transition: color 0.3s, text-shadow 0.3s;
+            font-family: 'Arial', sans-serif;
+            font-size: 1.1em;
+        }
+        .nav-container a:hover {
+            color: white;
+            text-shadow: 0 0 10px gold, 0 0 20px gold, 0 0 30px gold;
+        }
+        .page {
+            display: none;
+        }
+        .page.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="logo">易AI</div>
+    <div class="title">protocol-方法部分-队列研究</div>
+    <div class="nav-container">
+        <a href="#" onclick="showPage('studyDesign')">研究设计</a>
+        <a href="#" onclick="showPage('studyPopulation')">研究人群</a>
+        <a href="#" onclick="showPage('studyMeasures')">研究措施和收集程序</a>
+        <a href="#" onclick="showPage('measures')">测量</a>
+        <a href="#" onclick="showPage('powerConsideration')">样本量考虑和数据分析</a>
+        <a href="#" onclick="showPage('dataQualityMetrics')">数据质量指标</a>
+    </div>
+
+    <div id="studyDesign" class="page active">
+        <div class="section">
+            <div class="section-title">研究设计</div>
+            <div class="section-content">
+                <div class="input-container">
+                    <input type="text" id="researchLocation" placeholder="研究地点">
+                    <input type="text" id="diseaseName" placeholder="疾病名称">
+                    <input type="text" id="hospitalName" placeholder="医院名称">
+                    <input type="date" id="startDate" placeholder="开始日期">
+                    <input type="date" id="endDate" placeholder="结束日期">
+                    <input type="date" id="followUpEndDate" placeholder="随访结束时间">
+                    <input type="text" id="registrationPlatform" placeholder="注册平台信息">
+                    <input type="text" id="registrationNumber" placeholder="注册号信息">
+                    <input type="text" id="outcomeVariable" placeholder="主要结局变量名称">
+                </div>
+                <div class="radio-container">
+                    <label><input type="radio" name="studyPhase" value="前瞻性"> 前瞻性</label>
+                    <label><input type="radio" name="studyPhase" value="回顾性"> 回顾性</label>
+                </div>
+                <div class="radio-container">
+                    <label><input type="radio" name="centerCount" value="单中心"> 单中心</label>
+                    <label><input type="radio" name="centerCount" value="多中心"> 多中心</label>
+                </div>
+                <div class="checkbox-container">
+                    <label><input type="checkbox" name="hospitalType" value="综合医院"> 综合医院</label>
+                    <label><input type="checkbox" name="hospitalType" value="大学医院"> 大学医院</label>
+                    <label><input type="checkbox" name="hospitalType" value="专科医院"> 专科医院</label>
+                </div>
+                <div class="radio-container">
+                    <label><input type="radio" name="externalMultidisciplinary" value="有"> 有外部多学科</label>
+                    <label><input type="radio" name="externalMultidisciplinary" value="无"> 无外部多学科</label>
+                </div>
+                <div class="radio-container">
+                    <label><input type="radio" name="internationalAdvisoryCommittee" value="有"> 有国际顾问委员会</label>
+                    <label><input type="radio" name="internationalAdvisoryCommittee" value="无"> 无国际顾问委员会</label>
+                </div>
+                <button onclick="generateText()">生成研究设计提示词</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="studyPopulation" class="page">
+        <div class="section">
+            <div class="section-title">研究人群</div>
+            <div class="section-content">
+                <button onclick="generatePopulationPrompt()">输出提示词</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="studyMeasures" class="page">
+        <div class="section">
+            <div class="section-title">研究措施和收集程序</div>
+            <div class="section-content">
+                <button onclick="generateMeasuresPrompt()">生成提示词</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="measures" class="page">
+        <div class="section">
+            <div class="section-title">测量</div>
+            <div class="section-content">
+                <button onclick="generateMeasuresPrompt()">生成提示词</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="powerConsideration" class="page">
+        <div class="section">
+            <div class="section-title">样本量考虑和数据分析</div>
+            <div class="section-content">
+                <button onclick="generatePowerConsiderationPrompt()">生成提示词</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="dataQualityMetrics" class="page">
+        <div class="section">
+            <div class="section-title">数据质量指标</div>
+            <div class="section-content">
+                <button onclick="generateDataQualityPrompt()">生成提示词</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <p id="promptText"></p>
+            <button class="copy-button" onclick="copyPrompt()">复制</button>
+        </div>
+    </div>
+
+    <script>
+        function showPage(pageId) {
+            const pages = document.querySelectorAll('.page');
+            pages.forEach(page => page.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+        }
+
+        function generateText() {
+            const researchLocation = document.getElementById('researchLocation').value;
+            const studyPhase = document.querySelector('input[name="studyPhase"]:checked').value;
+            const centerCount = document.querySelector('input[name="centerCount"]:checked').value;
+            const diseaseName = document.getElementById('diseaseName').value;
+            const hospitalName = document.getElementById('hospitalName').value;
+            const hospitalType = Array.from(document.querySelectorAll('input[name="hospitalType"]:checked')).map(checkbox => checkbox.value).join('/');
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const followUpEndDate = document.getElementById('followUpEndDate').value;
+            const externalMultidisciplinary = document.querySelector('input[name="externalMultidisciplinary"]:checked').value;
+            const internationalAdvisoryCommittee = document.querySelector('input[name="internationalAdvisoryCommittee"]:checked').value;
+            const registrationPlatform = document.getElementById('registrationPlatform').value;
+            const registrationNumber = document.getElementById('registrationNumber').value;
+
+            const prompt = `我要撰写一个关于在【${researchLocation}】地区构建【${studyPhase}】【${centerCount}】【${diseaseName}】队列研究的protocol，现在，正在撰写“Study design and organisational structure”部分。我的研究对象为【${diseaseName}】患者，参与医院为【${hospitalName}】，分别为【${hospitalType}】。研究开始和结束时间分别为【${startDate}】和【${endDate}】，随访结束时间为【${followUpEndDate}】，【${externalMultidisciplinary}】外部多学科、【${internationalAdvisoryCommittee}】国际顾问委员会，公共注册平台为【${registrationPlatform}】，注册号是【${registrationNumber}】。现在，帮我撰写。撰写的要求如下：必须说明研究类型:纵向、前瞻性、多中心队列研究；必须说明研究对象并说明患者所在阶段；必须说明参与研究的医疗机构类型:如综合医院、大学医院、专科医院等；必须说明研究开始时间和随访时间；必须说明研究的主要协调单位或团队,包括不同背景的专家、如有外部多学科、国际顾问委员会,简要介绍。说明所有参与者需要提供书面知情同意,如有附属研究需单独签署；提供研究在公共注册平台的登记信息。请根据上述提示,详细描述研究的设计和管理情况。`;
+
+            document.getElementById('promptText').innerText = prompt;
+            document.getElementById('myModal').style.display = 'block';
+        }
+
+        function generatePopulationPrompt() {
+            const researchLocation = document.getElementById('researchLocation').value;
+            const studyPhase = document.querySelector('input[name="studyPhase"]:checked').value;
+            const centerCount = document.querySelector('input[name="centerCount"]:checked').value;
+            const diseaseName = document.getElementById('diseaseName').value;
+
+            const prompt = `我要撰写一个关于在【${researchLocation}】地区构建【${studyPhase}】【${centerCount}】【${diseaseName}】队列研究的protocol，现在，正在撰写“Study population”部分。我的研究对象为【${diseaseName}】患者，现在，帮我撰写纳入标准和排除标准。两个标准必须基于研究目的以及参考同类研究进行选择。鉴于这是一个队列研究，因此，纳排标准的限定要低于随机对照临床试验，不可太多。必须对标此前同样也是【${diseaseName}】的大型临床队列研究。`;
+
+            document.getElementById('promptText').innerText = prompt;
+            document.getElementById('myModal').style.display = 'block';
+        }
+
+        function generateMeasuresPrompt() {
+            const researchLocation = document.getElementById('researchLocation').value;
+            const studyPhase = document.querySelector('input[name="studyPhase"]:checked').value;
+            const centerCount = document.querySelector('input[name="centerCount"]:checked').value;
+            const diseaseName = document.getElementById('diseaseName').value;
+
+            const prompt = `我要撰写一个关于在【${researchLocation}】地区构建【${studyPhase}】【${centerCount}】【${diseaseName}】队列研究的protocol，现在，正在撰写“Study measures and collection procedures”部分。我的研究对象为【${diseaseName}】患者。现在，撰写相关内容，包括：数据收集指标和时间点\n列举拟收集的临床指标、实验室指标、成像指标、问卷调查等\n明确每次随访的具体时间点\n数据收集流程\n详细描述临床检查、问卷调查、生物样本采集等具体操作步骤\n说明各项操作的标准化方法\n特殊情况下的额外检查\n列出可能出现的特殊症状或情况\n说明对应需要进行的额外检查要求\n样本收集、储存和管理\n描述生物样本的采集、编码、储存位置等\n说明样本管理的具体措施\n数据质量控制\n列举数据管理培训、在线逻辑检查、远程/现场监查等质控措施\n说明这些措施如何保证数据准确性\n随访方式和时间\n明确随访频率、地点以及随访人员\n说明可能的中途退出情况,如疾病进展等\n其他事项\n根据具体研究内容补充其他需要说明的内容。但最终的撰写内容不要按照这些要点列subtitle，只需要酌情分段即可。此外，我的研究疾病是【${diseaseName}】，必须结合【${diseaseName}】的特点进行适当调整，包括特有的检查项目，特有的检查指标，随访时间的长短等。这些必须要对标此前同样也是研究【${diseaseName}】队列的文献。此外，制作一个表格，该表格是一个总结，主要是列出研究中采集的各种数据测量指标, 并对这些数据的测量和收集进行时间点的安排，包括各个研究的时间节点，按照随访策略来进行。要在表格下面多加一行：一定要区分哪些指标只需在基线测一次即可，哪些指标需要重复多次采集。`;
+
+            document.getElementById('promptText').innerText = prompt;
+            document.getElementById('myModal').style.display = 'block';
+        }
+
+        function generatePowerConsiderationPrompt() {
+            const researchLocation = document.getElementById('researchLocation').value;
+            const studyPhase = document.querySelector('input[name="studyPhase"]:checked').value;
+            const centerCount = document.querySelector('input[name="centerCount"]:checked').value;
+            const diseaseName = document.getElementById('diseaseName').value;
+            const outcomeVariable = document.getElementById('outcomeVariable').value;
+
+            const prompt = `我要撰写一个关于在【${researchLocation}】地区构建【${studyPhase}】【${centerCount}】【${diseaseName}】队列研究的protocol，现在，正在撰写“Power consideration and data analysis”部分。我的主要结局变量是【${outcomeVariable}】。我的目的是观察和记录特定疾病或健康状况的自然发展过程。这可以帮助了解疾病的病理生理机制、预后以及可能的影响因素。评估新的诊断或治疗方法的有效性和安全性。通过长期跟踪大规模队列中的患者,可以更全面地观察新方法的临床效果。发现疾病的高危因素和预防策略。通过收集大量人群的生活方式、环境和遗传等信息,可以分析疾病发生的风险因素。建立疾病流行病学数据库。大型观察队列能提供特定疾病在人群中的发生率、患病率等重要统计信息。为未来的临床试验和基础研究提供样本库和数据支持。大型队列可为后续研究提供大量的生物样本和临床信息。你要完成下列工作：1. 帮我确定样本量计算所需的参数，包括患者的事件发生率、效应大小、统计功效和随访丢失率。必须参考一些既往的【${diseaseName}】队列研究文献来获取这些信息。2. 当获取这些信息后，帮我计算样本量。注意：队列研究的样本量计算与RCT不同。在队列研究中,研究者通常无法完全控制样本量,因为样本量取决于自然发生的暴露和结局事件的数量。因此,样本量计算更多关注足够的事件数,而不是最小总样本量。因此，计算时，要考虑下列因素：根据既往研究数据或合理假设,估计研究中暴露的发生率。结合事件数,就可以推算出所需总样本量。如果研究中有多个主要结局指标,可以分别计算每个结局所需的最小事件数和总样本量,取其中最大值作为最终样本量。考虑可能的丢失随访或数据缺失情况,适当增加样本量以确保有足够的有效观察数据。此外，尽可能让样本量足够多，如果有多个参数可供选择，一定选择计算下来样本量最多的组合。总之无论是公式还是参数的组合，尽可能使计算后的样本量足够大。3. 进行统计学方法描述，即我们将采用哪些数据分析的方法对队列中的数据进行分析。最后，将上述内容整理为可直接用于发表论文的描述，并命名为“Power consideration and data analysis”。将最终内容以中文呈现出来。`;
+
+            document.getElementById('promptText').innerText = prompt;
+            document.getElementById('myModal').style.display = 'block';
+        }
+
+        function generateDataQualityPrompt() {
+            const researchLocation = document.getElementById('researchLocation').value;
+            const studyPhase = document.querySelector('input[name="studyPhase"]:checked').value;
+            const centerCount = document.querySelector('input[name="centerCount"]:checked').value;
+            const diseaseName = document.getElementById('diseaseName').value;
+            const outcomeVariable = document.getElementById('outcomeVariable').value;
+
+            const prompt = `我要撰写一个关于在【${researchLocation}】地区构建【${studyPhase}】【${centerCount}】【${diseaseName}】队列研究的protocol，现在，正在撰写“Data Management and Quality Assurance”部分。我的主要结局变量是【${outcomeVariable}】。应包括下列内容：数据收集和管理流程\n数据库设计和维护\n数据质量控制措施\n数据采集标准化\n定期核查和校正机制\n缺失值处理策略\n数据安全和隐私保护机制\n数据质量监测计划。帮我撰写该部分。但最终的内容不必按照这些要点进行subtitle，而是酌情分类。此外，要根据研究的实际情况以及可执行情况进行思辨，确保具有可行性。`;
+
+            document.getElementById('promptText').innerText = prompt;
+            document.getElementById('myModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('myModal').style.display = 'none';
+        }
+
+        function copyPrompt() {
+            const promptText = document.getElementById('promptText').innerText;
+            const tempInput = document.createElement('textarea');
+            tempInput.value = promptText;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+            alert('提示词已复制成功！');
+        }
+
+        function createStars() {
+            const numStars = 100;
+            const container = document.body;
+            for (let i = 0; i < numStars; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = `${Math.random() * 100}vw`;
+                star.style.top = `${Math.random() * 100}vh`;
+                star.style.animationDelay = `${Math.random() * 2}s`;
+                container.appendChild(star);
+            }
+        }
+
+        createStars();
+    </script>
+</body>
+</html>

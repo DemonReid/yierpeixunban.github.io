@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>方法学描述生成器</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        form {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #output {
+            margin-top: 20px;
+            white-space: pre-wrap;
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .example {
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <h1>方法学描述生成器</h1>
+    <form>
+        <label for="studyType">研究类型:</label>
+        <input type="text" id="studyType" required placeholder="例如: 回顾性队列研究, 前瞻性队列研究">
+
+        <label for="studyPeriod">研究起止时间:</label>
+        <input type="text" id="studyPeriod" required placeholder="例如: 2020年1月至2021年12月, 2018年6月至2019年5月">
+
+        <label for="followUpEndTime">随访截止时间:</label>
+        <input type="text" id="followUpEndTime" required placeholder="例如: 2023年12月31日, 2022年5月1日">
+
+        <label for="studyLocation">研究地点:</label>
+        <input type="text" id="studyLocation" required placeholder="例如: 北京协和医院, 上海瑞金医院">
+
+        <label for="studyPopulation">研究人群:</label>
+        <input type="text" id="studyPopulation" required placeholder="例如: 2型糖尿病患者, 急性心肌梗死患者">
+
+        <label for="sampleSize">样本量:</label>
+        <input type="text" id="sampleSize" required placeholder="例如: 1000, 2500">
+
+        <label for="exposureVariable">暴露变量:</label>
+        <input type="text" id="exposureVariable" required placeholder="例如: 体重指数, 吸烟状况">
+
+        <label for="outcomeVariable">结局变量:</label>
+        <input type="text" id="outcomeVariable" required placeholder="例如: 全因死亡, 心血管事件发生">
+
+        <label for="outcomeVariableTimeRange">结局变量时间范围:</label>
+        <input type="text" id="outcomeVariableTimeRange" required placeholder="例如: 5年, 10年">
+
+        <label for="covariates">协变量列表:</label>
+        <textarea id="covariates" rows="4" required placeholder="例如: 年龄、性别、吸烟状况、体重指数、收缩压, 年龄、性别、糖化血红蛋白、低密度脂蛋白胆固醇"></textarea>
+
+        <label for="inclusionExclusionCriteria">纳排标准:</label>
+        <textarea id="inclusionExclusionCriteria" rows="4" required placeholder="例如: 年龄18-75岁; 确诊2型糖尿病; 无严重肝肾功能不全, 年龄35-80岁; 急性心肌梗死确诊; 无恶性肿瘤"></textarea>
+
+        <label for="researchTopic">研究主题或研究疾病:</label>
+        <input type="text" id="researchTopic" required placeholder="例如: 研究疾病（2型糖尿病, 急性心肌梗死）或（RDW与心衰患者全因死亡的关联）">
+
+        <button type="button" onclick="generateResultsDescription()">生成论文结果部分描述</button>
+        <button type="button" onclick="generateComparison()">同类研究横向类比</button>
+        <button type="button" onclick="generateOptimizationSuggestions()">研究参数优化建议</button>
+        <button type="button" onclick="generateStatisticalMethodPrompt()">统计学方法提示词</button>
+        <button type="button" onclick="clearForm()">清除</button>
+    </form>
+
+    <div id="output"></div>
+    <script>
+        function generateResultsDescription() {
+            const studyType = document.getElementById('studyType').value;
+            const studyPeriod = document.getElementById('studyPeriod').value;
+            const followUpEndTime = document.getElementById('followUpEndTime').value;
+            const studyLocation = document.getElementById('studyLocation').value;
+            const studyPopulation = document.getElementById('studyPopulation').value;
+            const sampleSize = document.getElementById('sampleSize').value;
+            const exposureVariable = document.getElementById('exposureVariable').value;
+            const outcomeVariable = document.getElementById('outcomeVariable').value;
+            const outcomeVariableTimeRange = document.getElementById('outcomeVariableTimeRange').value;
+            const covariates = document.getElementById('covariates').value;
+            const inclusionExclusionCriteria = document.getElementById('inclusionExclusionCriteria').value;
+            const researchTopic = document.getElementById('researchTopic').value;
+
+            const prompt = `我的研究是一项${studyType},研究时间为${studyPeriod},随访截止时间为${followUpEndTime}。研究地点为${studyLocation},研究对象为${studyPopulation},样本量为${sampleSize}。本研究的暴露变量是${exposureVariable},结局变量是${outcomeVariable},结局变量的观察时间为${outcomeVariableTimeRange}。纳入的协变量包括${covariates}。
+
+纳排标准方面,除了缺少暴露或结局信息的研究对象必须被排除外,其他的关于纳排标准内容如下：${inclusionExclusionCriteria}
+
+请根据以上信息,参考STROBE指南,撰写一份包含以下三个部分的方法学描述:
+1. Study population:[研究时间、地点、人群、样本量、纳排标准、疾病诊断标准、数据来源与采集方法]。
+2. Variables:[暴露变量、结局变量、协变量的描述,包括纳入协变量的理由和结局变量的判定方法。]。
+（1）暴露变量描述时要描述测量方法、时间和分类；明确说明暴露变量的定义或测量方法,如采用何种仪器、试剂等。说明暴露变量的测量时间, （如入院时、入院后24小时内等）。交代暴露变量在数据库中的表现形式，如果要将其作为分类变量，要说明理由。
+（2）结局变量要明确说明定义，判定标准，判定流程。要详细说明结局变量在数据库中的表现形式，即以什么样的形式记录结局变量。结局变量的判定是否采用了盲法。
+（3）协变量要说明协变量的定义、测量方法和分类，以及为何选择这些变量作为协变量的理由。
+（4）说明缺失数据的处理方法: 交代缺失数据的比例。说明缺失数据的处理方法,如完整个案分析、多重插补等。
+3. Ethic statement:[伦理审查和知情同意的描述]。其中，关于伦理学的描述是必须的。而知情同意根据研究类型有两种写法,你必须遵守，第一种：回顾性队列研究，因为患者信息匿名化，因此，无需知情同意；第二种：前瞻性研究，所有患者必须要有知情同意。ethic statement必须写的专业，符合直接发表“lancet”期刊的标准。
+
+要求:
+1. 语言简洁、学术化,避免冗长描述,句子完整、通顺、自然
+2. 根据STROBE指南修订,确保拼写、语法、清晰度、简洁性和整体可读性
+3. 评估句子间的流畅性和联系,提高内容的整体质量和可读性
+4. 增加深度与原创性,描述生动,逻辑清晰,各部分紧密联系
+5. 可以添加更多细节，如研究假设、数据处理。
+最后，将生成的内容以中文呈现最终的方法部分内容,将STROBE指南修订后的内容融合其中,无需额外说明。但必须保证生成的内容是三个段落，每个段落的subhead分别是“study population”，“variables”，“ethic statement”`;
+
+            document.getElementById('output').innerText = prompt;
+        }
+
+        function generateComparison() {
+            const studyType = document.getElementById('studyType').value;
+            const studyPeriod = document.getElementById('studyPeriod').value;
+            const followUpEndTime = document.getElementById('followUpEndTime').value;
+            const studyLocation = document.getElementById('studyLocation').value;
+            const studyPopulation = document.getElementById('studyPopulation').value;
+            const sampleSize = document.getElementById('sampleSize').value;
+            const exposureVariable = document.getElementById('exposureVariable').value;
+            const outcomeVariable = document.getElementById('outcomeVariable').value;
+            const outcomeVariableTimeRange = document.getElementById('outcomeVariableTimeRange').value;
+            const covariates = document.getElementById('covariates').value;
+            const inclusionExclusionCriteria = document.getElementById('inclusionExclusionCriteria').value;
+
+            const prompt = `研究类型: ${studyType}
+研究起止时间: ${studyPeriod}
+随访截止时间: ${followUpEndTime}
+研究地点: ${studyLocation}
+研究人群: ${studyPopulation}
+样本量: ${sampleSize}
+暴露变量: ${exposureVariable}
+结局变量: ${outcomeVariable}
+结局变量时间范围: ${outcomeVariableTimeRange}
+协变量列表: ${covariates}
+纳入标准: ${inclusionExclusionCriteria}
+
+根据上述研究参数,使用CLAUDE3.5 sonnet检索相关的医学文献,提取关键信息,尤其是研究设计的相关参数,总结目前在该领域的现状和趋势。主要需要关注以下几个方面:
+
+研究设计
+研究人群特征
+主要暴露因素和结局指标
+统计分析方法
+研究结果和结论
+研究局限性和未来研究展望
+现有文献的研究设计、人群特征、主要结果等信息将为您的队列研究提供参考。呈现过程中需要附上参考文献,参考文献的著录格式应符合LANCET期刊要求。`;
+
+            document.getElementById('output').innerText = prompt;
+        }
+
+        function generateOptimizationSuggestions() {
+            const studyType = document.getElementById('studyType').value;
+            const studyPeriod = document.getElementById('studyPeriod').value;
+            const followUpEndTime = document.getElementById('followUpEndTime').value;
+            const studyLocation = document.getElementById('studyLocation').value;
+            const studyPopulation = document.getElementById('studyPopulation').value;
+            const sampleSize = document.getElementById('sampleSize').value;
+            const exposureVariable = document.getElementById('exposureVariable').value;
+            const outcomeVariable = document.getElementById('outcomeVariable').value;
+            const outcomeVariableTimeRange = document.getElementById('outcomeVariableTimeRange').value;
+            const covariates = document.getElementById('covariates').value;
+            const inclusionExclusionCriteria = document.getElementById('inclusionExclusionCriteria').value;
+            const researchTopic = document.getElementById('researchTopic').value;    
+
+            const prompt = `C：我要进行一个关于${researchTopic}的队列研究。我的研究参数如下：
+研究类型：${studyType}
+研究起止时间:${studyPeriod}	
+随访截止时间:${followUpEndTime}
+研究地点:${studyLocation}
+研究人群:${studyPopulation}
+样本量:${sampleSize}
+暴露变量:${exposureVariable}
+结局变量:${outcomeVariable}
+结局变量时间范围:${outcomeVariableTimeRange}
+协变量列表:${covariates}
+纳排标准:${inclusionExclusionCriteria}
+O：现在，完成下列工作：以研究人群，暴露变量以及结局变量作为关键词,使用CLAUDE3.5 sonnet检索相关的医学文献。提取关键信息，尤其是研究设计的相关参数，总结目前${researchTopic}队列研究在该领域的现状和趋势。
+S：请以条理清晰的方式呈现上述信息,为我的${researchTopic}队列研究提供参考此外，呈现时要附上参考文献。参考文献在呈现过程中要进行标注，参考文献的著录格式同LANCET期刊要求。`;
+
+            document.getElementById('output').innerText = prompt;
+        }
+
+        function generateStatisticalMethodPrompt() {
+            const groupName = "表1分组变量名称";
+            const groupPrinciple = "分组变量原则";
+            const exposureVariable = document.getElementById('exposureVariable').value;
+            const outcomeVariable = document.getElementById('outcomeVariable').value;
+            const normalDistribution = "Student T test";
+            const skewedDistribution = "Mann-Whitney U test";
+            const regression = "linear regression model";
+            const curveFitting = "Generalized additive model";
+
+            const prompt = `
+我正在撰写学术论文的“statistical analysis部分，我现在已经有了模板，但模板是中英文描述混合的，模板如下
+”对“连续变量采用均数±标准差（正态分布）或中位数（最小值，最大值）表示. Categorical variables were expressed in frequency or as a percentage. 
+We used χ2 (categorical variables), ${normalDistribution} (normal distribution), or  ${skewedDistribution} (skewed distribution) to test for differences among different ${groupName} groups (${groupPrinciple}). 
+我们通过下列步骤对${exposureVariable}与${outcomeVariable}的关联进行分析。 Step 1: Univariate and multivariate ${regression} were employed. We constructed three models: model 1, no covariates were adjusted; model 2, only adjusted for sociodemographic data; model 3, model 2+other covariates presented in table 1。
+三个模型建立的目的是为了探讨不同调整策略下${exposureVariable}的效应值变化趋势，以观察我们结果的鲁棒性。
+Step 2: To address for nonlinearity of ${exposureVariable} and ${outcomeVariable} , a ${curveFitting} and smooth curve fitting (penalized spline method) were conducted. If nonlinearity was detected, we first calculated the inflection point using recursive algorithm, and then constructed a two-piecewise linear model on both sides of the inflection point. 
+基于敏感性分析的目的，我们还对 standard ${regression} 与two-piecewise进行了比较，通过对数似然比判定到底哪一个模型更适合解释${exposureVariable} and ${outcomeVariable} 的真实关联。
+Step 3: The subgroup analyses were performed using stratified ${regression} models或 ${curveFitting}. 当分层变量为连续变量时, we first converted it to a categorical variable according to the clinical cut point or tertile, and then performed an interaction test. Tests for effect modification for those of subgroup indicators were followed by the likelihood ration test. 
+To ensure the robustness of data analysis, we did a sensitivity analysis. We converted the ${exposureVariable} into a categorical variable, and calculated the P for trend. The purpose was to verify the results of ${exposureVariable} as the continuous variable and to observe the possibility of nonlinearity. All the analyses were performed with the statistical software packages R (http://www.R-project.org, The R Foundation). P values less than 0.05 (two-sided) were considered statistically significant”
+           我的要求是：（1）将这段中英文混杂的模板整理为中文，英文两种模式；（2）保证最终呈现的前言的拼写，语法，清晰度，简洁性和整体可读性，同时分解长句，减少重复。要求使用简洁、学术化的语言，避免冗长的描述，并保证句子完整、通顺、自然。同时，对整个内容进行评估，找出句子之间的流畅性或联系可以改进的地方，以提高内容的整体质量和可读性。此外，增加深度与原创性，描述要生动，吸引读者，逻辑衔接要清晰，各个部分之间要有紧密的联系。将经过上述步骤处理的最终内容以中文呈现出来。`;
+
+            document.getElementById('output').innerText = prompt;
+        }
+
+        function clearForm() {
+            document.getElementById('studyType').value = '';
+            document.getElementById('studyPeriod').value = '';
+            document.getElementById('followUpEndTime').value = '';
+            document.getElementById('studyLocation').value = '';
+            document.getElementById('studyPopulation').value = '';
+            document.getElementById('sampleSize').value = '';
+            document.getElementById('exposureVariable').value = '';
+            document.getElementById('outcomeVariable').value = '';
+            document.getElementById('outcomeVariableTimeRange').value = '';
+            document.getElementById('covariates').value = '';
+            document.getElementById('inclusionExclusionCriteria').value = '';
+            document.getElementById('researchTopic').value = '';
+            document.getElementById('output').innerText = '';
+        }
+    </script>
+</body>
+</html>
