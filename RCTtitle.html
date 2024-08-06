@@ -148,7 +148,7 @@
         }
 
         function generateSummaryPrompt() {
-            const summaryPrompt = "撰写摘要，包括背景，方法，讨论。字数控制在250字。";
+            const summaryPrompt = "撰写摘要，包括背景，方法，讨论。字数控制在250字。（提示：该部分在所有写作部分写完后，最后再完成）";
             document.getElementById('promptText').innerText = summaryPrompt;
             document.getElementById('myModal').style.display = 'block';
         }
