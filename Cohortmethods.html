@@ -260,7 +260,7 @@
         <div class="section">
             <div class="section-title">研究措施和收集程序</div>
             <div class="section-content">
-                <button onclick="generateMeasuresPrompt()">生成提示词</button>
+                <button onclick="generateStudyMeasuresPrompt()">生成提示词</button>
             </div>
         </div>
     </div>
@@ -340,13 +340,75 @@
             document.getElementById('myModal').style.display = 'block';
         }
 
-        function generateMeasuresPrompt() {
+        function generateStudyMeasuresPrompt() {
             const researchLocation = document.getElementById('researchLocation').value;
             const studyPhase = document.querySelector('input[name="studyPhase"]:checked').value;
             const centerCount = document.querySelector('input[name="centerCount"]:checked').value;
             const diseaseName = document.getElementById('diseaseName').value;
 
             const prompt = `我要撰写一个关于在【${researchLocation}】地区构建【${studyPhase}】【${centerCount}】【${diseaseName}】队列研究的protocol，现在，正在撰写“Study measures and collection procedures”部分。我的研究对象为【${diseaseName}】患者。现在，撰写相关内容，包括：数据收集指标和时间点\n列举拟收集的临床指标、实验室指标、成像指标、问卷调查等\n明确每次随访的具体时间点\n数据收集流程\n详细描述临床检查、问卷调查、生物样本采集等具体操作步骤\n说明各项操作的标准化方法\n特殊情况下的额外检查\n列出可能出现的特殊症状或情况\n说明对应需要进行的额外检查要求\n样本收集、储存和管理\n描述生物样本的采集、编码、储存位置等\n说明样本管理的具体措施\n数据质量控制\n列举数据管理培训、在线逻辑检查、远程/现场监查等质控措施\n说明这些措施如何保证数据准确性\n随访方式和时间\n明确随访频率、地点以及随访人员\n说明可能的中途退出情况,如疾病进展等\n其他事项\n根据具体研究内容补充其他需要说明的内容。但最终的撰写内容不要按照这些要点列subtitle，只需要酌情分段即可。此外，我的研究疾病是【${diseaseName}】，必须结合【${diseaseName}】的特点进行适当调整，包括特有的检查项目，特有的检查指标，随访时间的长短等。这些必须要对标此前同样也是研究【${diseaseName}】队列的文献。此外，制作一个表格，该表格是一个总结，主要是列出研究中采集的各种数据测量指标, 并对这些数据的测量和收集进行时间点的安排，包括各个研究的时间节点，按照随访策略来进行。要在表格下面多加一行：一定要区分哪些指标只需在基线测一次即可，哪些指标需要重复多次采集。`;
+
+            document.getElementById('promptText').innerText = prompt;
+            document.getElementById('myModal').style.display = 'block';
+        }
+
+        function generateMeasuresPrompt() {
+            const researchLocation = document.getElementById('researchLocation').value;
+            const studyPhase = document.querySelector('input[name="studyPhase"]:checked').value;
+            const centerCount = document.querySelector('input[name="centerCount"]:checked').value;
+            const diseaseName = document.getElementById('diseaseName').value;
+            const outcomeVariable = document.getElementById('outcomeVariable').value;
+
+            const prompt = `我要撰写一个关于在【${researchLocation}】地区构建【${studyPhase}】【${centerCount}】【${diseaseName}】队列研究的protocol，现在，正在撰写“measure”部分。我的主要结局变量是【${outcomeVariable}】。请根据以下框架为【${diseaseName}】的【${studyPhase}】专病队列研究生成一个详细的"measure"部分。该部分应符合高质量SCI期刊的发表标准，包含以下要素：
+
+基线特征测量：
+
+详细列出将收集的人口统计学信息
+描述与[特定疾病]相关的临床特征测量
+说明如何收集既往病史和家族史
+描述将评估的生活方式因素
+疾病特异性测量：
+
+明确[特定疾病]的诊断标准和方法
+详述疾病严重程度的评估方法
+列出将测量的特定生物标志物或影像学检查
+治疗相关测量：
+
+描述如何记录治疗方案详情
+说明药物剂量和给药方式的记录方法
+解释如何评估治疗依从性
+结局测量：
+
+明确定义主要和次要结局
+详述结局评估的方法和时间点
+描述不良事件和并发症的记录方法
+生活质量和患者报告结局：
+
+列出将使用的量表和问卷，并说明选择理由
+指明评估频率
+生物样本采集：
+
+详述样本类型、采集时间点和频率
+描述样本的存储和处理方法
+随访计划：
+
+明确随访频率和持续时间
+描述随访方法（如门诊、电话、问卷等）
+在撰写时，请注意以下几点：
+
+确保所有测量方法都经过标准化
+使用经过验证的测量工具和量表
+明确指出每项测量的具体时间点
+描述数据质量控制措施
+说明参与数据收集人员的培训情况
+描述如何最小化测量偏倚
+说明如何处理潜在的缺失数据
+确保所有测量符合伦理标准，并获得了适当的知情同意
+考虑长期随访中可能需要的测量方法调整
+考虑整合新的测量技术或方法
+平衡全面测量的需求与参与者负担
+为可能的子研究预留样本或数据收集机会
+请以清晰、简洁且专业的语言撰写，使用适当的医学术语，并确保内容逻辑连贯，符合科学写作规范。此外，必须结合【${diseaseName}】的疾病特点。`;
 
             document.getElementById('promptText').innerText = prompt;
             document.getElementById('myModal').style.display = 'block';
