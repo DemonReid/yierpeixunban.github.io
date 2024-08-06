@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>非机构化数据提取</title>
+    <title>非结构化数据提取</title>
     <style>
         body {
             background-color: black;
@@ -15,7 +15,7 @@
             justify-content: center;
             height: 100vh;
             margin: 0;
-            overflow: hidden;
+            overflow: auto; /* 允许内容溢出时显示滚动条 */
         }
         .logo {
             font-size: 2em;
@@ -28,6 +28,7 @@
             width: 80%;
             margin: 0 auto;
             z-index: 1;
+            overflow: auto; /* 允许内容溢出时显示滚动条 */
         }
         .form-group {
             margin-bottom: 15px;
@@ -79,6 +80,11 @@
             50% { opacity: 1; }
             100% { opacity: 0; }
         }
+        .button-row {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+        }
     </style>
 </head>
 <body>
@@ -107,14 +113,12 @@
             <label for="resultSelect">结果</label>
             <select id="resultSelect"></select>
         </div>
-        <div class="form-group">
+        <div class="form-group button-row">
             <button id="countButton">显示检查项目名及频数</button>
+            <button id="exportButton">提取数据</button>
         </div>
         <div class="form-group">
             <ul id="frequencyList"></ul>
-        </div>
-        <div class="form-group">
-            <button id="exportButton">提取数据</button>
         </div>
     </div>
 
