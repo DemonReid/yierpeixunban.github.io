@@ -93,6 +93,7 @@
     <br><br>
     <button onclick="showHorizontalMergeOptions()">横向合并</button>
     <button onclick="showVerticalMergeOptions()">纵向合并</button>
+    <button onclick="showInconsistentVariables()">显示不同数据集中不一致的变量名</button>
     <br><br>
     <div id="output"></div>
 
@@ -144,6 +145,8 @@
             }
             const output = document.getElementById('output');
             output.innerHTML = '<h3>选择用于纵向合并的变量：</h3>';
+            output.innerHTML += '<label><input type="checkbox" id="commonVarsOnly"> 只合并各个数据集中均有的变量</label>';
+            output.innerHTML += '<button onclick="selectAllVariables()">全选</button>';
             fileHeaders.forEach(file => {
                 output.innerHTML += `<div class="variable-list"><h4>${file.fileName}</h4>` + file.headers.map(header => 
                     `<label><input type="checkbox" name="mergeVars" value="${header}" onclick="highlightSelection(this)"> <span>${header}</span></label>`).join('') + '</div>';
@@ -209,20 +212,32 @@
         }
 
         function mergeFilesVertically() {
-            const selectedVars = Array.from(document.querySelectorAll('input[name="mergeVars"]:checked')).map(input => input.value);
-            if (selectedVars.length === 0) {
-                alert('请选择至少一个变量。');
-                return;
+            const commonVarsOnly = document.getElementById('commonVarsOnly').checked;
+            let selectedVars = Array.from(document.querySelectorAll('input[name="mergeVars"]:checked')).map(input => input.value);
+
+            if (commonVarsOnly) {
+                const commonHeaders = fileHeaders.reduce((acc, file) => {
+                    if (acc === null) return new Set(file.headers);
+                    return new Set(file.headers.filter(header => acc.has(header)));
+                }, null);
+                selectedVars = Array.from(commonHeaders);
+            } else if (selectedVars.length === 0) {
+                selectedVars = Array.from(headers);
             }
 
             const mergedData = [];
+            const uniqueRows = new Set();
             filesData.forEach(file => {
                 file.data.forEach(row => {
                     const filteredRow = {};
                     selectedVars.forEach(varName => {
                         filteredRow[varName] = row[varName];
                     });
-                    mergedData.push(filteredRow);
+                    const rowString = JSON.stringify(filteredRow);
+                    if (!uniqueRows.has(rowString)) {
+                        uniqueRows.add(rowString);
+                        mergedData.push(filteredRow);
+                    }
                 });
             });
 
@@ -247,6 +262,49 @@
                 output.style.animation = '';
                 output.innerHTML = '';
             }, 4000);
+        }
+
+        function selectAllVariables() {
+            const checkboxes = document.querySelectorAll('input[name="mergeVars"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = true;
+                highlightSelection(checkbox);
+            });
+        }
+
+        function showInconsistentVariables() {
+            if (filesData.length === 0) {
+                alert('请先上传文件。');
+                return;
+            }
+
+            const headerCounts = {};
+            fileHeaders.forEach(file => {
+                file.headers.forEach(header => {
+                    if (!headerCounts[header]) {
+                        headerCounts[header] = { count: 0, files: [] };
+                    }
+                    headerCounts[header].count++;
+                    headerCounts[header].files.push(file.fileName);
+                });
+            });
+
+            const inconsistentHeaders = [];
+            for (const [header, data] of Object.entries(headerCounts)) {
+                if (data.count < filesData.length) {
+                    inconsistentHeaders.push({ header, files: data.files });
+                }
+            }
+
+            if (inconsistentHeaders.length === 0) {
+                alert('所有数据集中变量名一致。');
+            } else {
+                let message = '以下变量名在某些数据集中不一致：\n';
+                inconsistentHeaders.forEach(item => {
+                    message += `在 ${item.files.join(', ')} 文件中，${item.header} 变量是其他文件没有的\n`;
+                });
+                alert(message);
+            }
         }
     </script>
 </body>
