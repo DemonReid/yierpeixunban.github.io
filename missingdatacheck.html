@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>缺失值报告及选择</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        h1 {
+            color: #0078d4;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+        input[type="file"], input[type="number"], button {
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1em;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #0078d4;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #005a9e;
+        }
+        br {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>缺失值报告及选择</h1>
+    <input type="file" id="fileInput" accept=".csv">
+    <button onclick="processFiles()">生成缺失值报告</button>
+    <br><br>
+    <input type="number" id="thresholdInput" placeholder="输入缺失比例阈值（百分比）">
+    <button onclick="exportNewData()">导出新数据</button>
+    <script>
+        let originalData = null;
+
+        function processFiles() {
+            const files = document.getElementById('fileInput').files;
+            if (files.length === 0) {
+                alert('请选择文件');
+                return;
+            }
+
+            const file = files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const text = e.target.result;
+                originalData = csvToArray(text);
+                const report = generateReport(originalData);
+                saveReport(report);
+            };
+
+            reader.readAsText(file);
+        }
+
+        function csvToArray(str, delimiter = ",") {
+            const headers = str.slice(0, str.indexOf("\n")).split(delimiter);
+            const rows = str.slice(str.indexOf("\n") + 1).split("\n");
+
+            const arr = rows.map(function (row) {
+                const values = row.split(delimiter);
+                const el = headers.reduce(function (object, header, index) {
+                    object[header] = values[index];
+                    return object;
+                }, {});
+                return el;
+            });
+
+            return [headers, ...arr];
+        }
+
+        function generateReport(data) {
+            const headers = data[0];
+            const rows = data.slice(1);
+            const report = [];
+
+            headers.forEach((header, index) => {
+                const missingCount = rows.filter(row => {
+                    const value = row[header];
+                    return value === undefined || value === null || value === '' || value.toLowerCase() === 'na';
+                }).length;
+                const totalCount = rows.length;
+                const missingRatio = ((missingCount / totalCount) * 100).toFixed(3) + '%';
+
+                report.push({
+                    '变量名': header,
+                    '变量注解': '',
+                    '总样本量': totalCount,
+                    '缺失样本量': missingCount,
+                    '缺失比例': missingRatio
+                });
+            });
+
+            // 按照缺失比例从大到小排序
+            report.sort((a, b) => parseFloat(b['缺失比例']) - parseFloat(a['缺失比例']));
+
+            return report;
+        }
+
+        function saveReport(report) {
+            const header = ['变量名', '变量注解', '总样本量', '缺失样本量', '缺失比例'];
+            const csvContent = [header.join(',')]
+                .concat(report.map(row => header.map(key => row[key]).join(',')))
+                .join('\n');
+
+            const blob = new Blob([csvContent], {type: 'text/csv;charset=utf-8'});
+            saveAs(blob, 'report.csv');
+        }
+
+        function exportNewData() {
+            if (!originalData) {
+                alert('请先处理文件');
+                return;
+            }
+
+            const threshold = document.getElementById('thresholdInput').value;
+            if (!threshold) {
+                alert('请输入缺失比例阈值');
+                return;
+            }
+
+            const headers = originalData[0];
+            const rows = originalData.slice(1);
+            const report = generateReport(originalData);
+
+            const columnsToRemove = report.filter(row => parseFloat(row['缺失比例']) >= threshold).map(row => row['变量名']);
+            const newHeaders = headers.filter(header => !columnsToRemove.includes(header));
+            const newRows = rows.map(row => newHeaders.reduce((obj, header) => {
+                obj[header] = row[header];
+                return obj;
+            }, {}));
+
+            // 确保新数据包括变量名
+            const newData = [newHeaders.join(',')]
+                .concat(newRows.map(row => newHeaders.map(header => row[header]).join(',')))
+                .join('\n');
+
+            const blob = new Blob([newData], {type: 'text/csv;charset=utf-8'});
+            saveAs(blob, 'new_data.csv');
+        }
+    </script>
+</body>
+</html>
