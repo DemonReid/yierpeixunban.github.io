@@ -11,6 +11,36 @@
             padding: 0;
             background-color: #f4f4f4;
         }
+        .container {
+            width: 300px;
+            margin: 100px auto;
+            padding: 20px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .container h1 {
+            text-align: center;
+        }
+        .container input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .container button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .container button:hover {
+            background-color: #45a049;
+        }
         header {
             background-color: #4CAF50;
             color: white;
@@ -35,39 +65,72 @@
         main {
             padding: 20px;
         }
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
-    <header>
-        <h1>易AI提示词及数据处理工具</h1>
-    </header>
-    <nav>
-        <a href="https://demonreid.github.io/yierpeixunban.github.io/indexRCT" target="_blank">RCT-protocol提示词</a>
-        <a href="https://demonreid.github.io/yierpeixunban.github.io/indexCohort.html" target="_blank">前瞻性队列protocol提示词</a>
-        <a href="https://demonreid.github.io/yierpeixunban.github.io/indexpaper.html" target="_blank">论文写作提示词</a>
-        <a href="https://demonreid.github.io/yierpeixunban.github.io/indexdata.html" target="_blank">数据操作</a>
-        <a href="https://demonreid.github.io/yierpeixunban.github.io/indexdataset.html" target="_blank">数据库相关提示词</a>
-    </nav>
-    <main>
-         <section id="prospective-cohort">
-            <h2>RCT-protocol提示词</h2>
-            <p>该导航的链接网址是随机对照临床试验的protoco写作。按网页内容填写生成提示词并输入claude 3.5 sonnet，可直接生成内容</p>
-        <section id="prospective-cohort">
-            <h2>前瞻性队列protocol提示词</h2>
-            <p>该导航的链接网址是前瞻性队列的protoco写作。按网页内容填写生成提示词并输入claude 3.5 sonnet，可直接生成内容</p>
-        </section>
-        <section id="paper-writing">
-            <h2>论文写作提示词</h2>
-            <p>该导航的链接网址是关联分析论文写作。按网页内容填写生成提示词并输入claude 3.5 sonnet，可直接生成内容。</p>
-        </section>
-        <section id="data-manipulation">
-            <h2>数据操作提示词</h2>
-            <p>该导航的链接网址是数据操作。包含字符查询，数据合并，异常值检测及修订。用于数据分析前的数据清洗</p>
-        </section>
-        <section id="database">
-            <h2>数据库相关提示词</h2>
-            <p>该导航的链接网址是数据库相关提示词。按网页内容填写生成提示词并输入claude 3.5 sonnet，可直接生成适用于个人的数据库；点击非结构化数据提取，可直接将HIS系统数据以及大数据库数据进行结构化数据转换</p>
-        </section>
-    </main>
+    <div id="loginForm" class="container">
+        <h1>Login</h1>
+        <input type="text" id="username" placeholder="Username">
+        <input type="password" id="password" placeholder="Password">
+        <button onclick="login()">Login</button>
+    </div>
+
+    <div id="mainContent" class="hidden">
+        <header>
+            <h1>易AI提示词及数据处理工具</h1>
+        </header>
+        <nav>
+            <a href="#" onclick="showSection('RCT')">RCT-protocol提示词</a>
+            <a href="#" onclick="showSection('Cohort')">前瞻性队列protocol提示词</a>
+            <a href="#" onclick="showSection('Paper')">论文写作提示词</a>
+            <a href="#" onclick="showSection('Data')">数据操作</a>
+            <a href="#" onclick="showSection('Database')">数据库相关提示词</a>
+        </nav>
+        <main>
+            <section id="RCT" class="hidden">
+                <h2>RCT-protocol提示词</h2>
+                <p>该导航的链接网址是随机对照临床试验的protocol写作。按网页内容填写生成提示词并输入claude 3.5 sonnet，可直接生成内容</p>
+            </section>
+            <section id="Cohort" class="hidden">
+                <h2>前瞻性队列protocol提示词</h2>
+                <p>该导航的链接网址是前瞻性队列的protocol写作。按网页内容填写生成提示词并输入claude 3.5 sonnet，可直接生成内容</p>
+            </section>
+            <section id="Paper" class="hidden">
+                <h2>论文写作提示词</h2>
+                <p>该导航的链接网址是关联分析论文写作。按网页内容填写生成提示词并输入claude 3.5 sonnet，可直接生成内容。</p>
+            </section>
+            <section id="Data" class="hidden">
+                <h2>数据操作提示词</h2>
+                <p>该导航的链接网址是数据操作。包含字符查询，数据合并，异常值检测及修订。用于数据分析前的数据清洗</p>
+            </section>
+            <section id="Database" class="hidden">
+                <h2>数据库相关提示词</h2>
+                <p>该导航的链接网址是数据库相关提示词。按网页内容填写生成提示词并输入claude 3.5 sonnet，可直接生成适用于个人的数据库；点击非结构化数据提取，可直接将HIS系统数据以及大数据库数据进行结构化数据转换</p>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (username === 'yiaitraining' && password === '20140373') {
+                document.getElementById('loginForm').classList.add('hidden');
+                document.getElementById('mainContent').classList.remove('hidden');
+            } else {
+                alert('Invalid username or password');
+            }
+        }
+
+        function showSection(sectionId) {
+            const sections = document.querySelectorAll('main section');
+            sections.forEach(section => section.classList.add('hidden'));
+            document.getElementById(sectionId).classList.remove('hidden');
+        }
+    </script>
 </body>
 </html>
