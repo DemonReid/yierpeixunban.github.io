@@ -11,36 +11,6 @@
             padding: 0;
             background-color: #f4f4f4;
         }
-        .container {
-            width: 300px;
-            margin: 100px auto;
-            padding: 20px;
-            background-color: #fff;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        .container h1 {
-            text-align: center;
-        }
-        .container input {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        .container button {
-            width: 100%;
-            padding: 10px;
-            background-color: #4CAF50;
-            border: none;
-            color: white;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .container button:hover {
-            background-color: #45a049;
-        }
         header {
             background-color: #4CAF50;
             color: white;
@@ -65,14 +35,33 @@
         main {
             padding: 20px;
         }
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 50px;
+        }
+        .login-form input {
+            margin: 10px 0;
+            padding: 10px;
+            width: 200px;
+        }
+        .login-form button {
+            padding: 10px;
+            width: 220px;
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            cursor: pointer;
+        }
         .hidden {
             display: none;
         }
     </style>
 </head>
 <body>
-    <div id="loginForm" class="container">
-        <h1>Login</h1>
+    <div id="loginForm" class="login-form">
+        <h2>Login</h2>
         <input type="text" id="username" placeholder="Username">
         <input type="password" id="password" placeholder="Password">
         <button onclick="login()">Login</button>
@@ -83,30 +72,30 @@
             <h1>易AI提示词及数据处理工具</h1>
         </header>
         <nav>
-            <a href="#" onclick="showSection('RCT')">RCT-protocol提示词</a>
-            <a href="#" onclick="showSection('Cohort')">前瞻性队列protocol提示词</a>
-            <a href="#" onclick="showSection('Paper')">论文写作提示词</a>
-            <a href="#" onclick="showSection('Data')">数据操作</a>
-            <a href="#" onclick="showSection('Database')">数据库相关提示词</a>
+            <a href="#" onclick="navigate('indexRCT.html')">RCT-protocol提示词</a>
+            <a href="#" onclick="navigate('indexCohort.html')">前瞻性队列protocol提示词</a>
+            <a href="#" onclick="navigate('indexpaper.html')">论文写作提示词</a>
+            <a href="#" onclick="navigate('indexdata.html')">数据操作</a>
+            <a href="#" onclick="navigate('indexdataset.html')">数据库相关提示词</a>
         </nav>
         <main>
-            <section id="RCT" class="hidden">
+            <section id="prospective-cohort">
                 <h2>RCT-protocol提示词</h2>
-                <p>该导航的链接网址是随机对照临床试验的protocol写作。按网页内容填写生成提示词并输入claude 3.5 sonnet，可直接生成内容</p>
+                <p>该导航的链接网址是随机对照临床试验的protoco写作。按网页内容填写生成提示词并输入claude 3.5 sonnet，可直接生成内容</p>
             </section>
-            <section id="Cohort" class="hidden">
+            <section id="prospective-cohort">
                 <h2>前瞻性队列protocol提示词</h2>
-                <p>该导航的链接网址是前瞻性队列的protocol写作。按网页内容填写生成提示词并输入claude 3.5 sonnet，可直接生成内容</p>
+                <p>该导航的链接网址是前瞻性队列的protoco写作。按网页内容填写生成提示词并输入claude 3.5 sonnet，可直接生成内容</p>
             </section>
-            <section id="Paper" class="hidden">
+            <section id="paper-writing">
                 <h2>论文写作提示词</h2>
                 <p>该导航的链接网址是关联分析论文写作。按网页内容填写生成提示词并输入claude 3.5 sonnet，可直接生成内容。</p>
             </section>
-            <section id="Data" class="hidden">
+            <section id="data-manipulation">
                 <h2>数据操作提示词</h2>
                 <p>该导航的链接网址是数据操作。包含字符查询，数据合并，异常值检测及修订。用于数据分析前的数据清洗</p>
             </section>
-            <section id="Database" class="hidden">
+            <section id="database">
                 <h2>数据库相关提示词</h2>
                 <p>该导航的链接网址是数据库相关提示词。按网页内容填写生成提示词并输入claude 3.5 sonnet，可直接生成适用于个人的数据库；点击非结构化数据提取，可直接将HIS系统数据以及大数据库数据进行结构化数据转换</p>
             </section>
@@ -126,10 +115,8 @@
             }
         }
 
-        function showSection(sectionId) {
-            const sections = document.querySelectorAll('main section');
-            sections.forEach(section => section.classList.add('hidden'));
-            document.getElementById(sectionId).classList.remove('hidden');
+        function navigate(url) {
+            window.open(url, '_blank');
         }
     </script>
 </body>
