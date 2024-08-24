@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>缺失值报告及选择</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -64,41 +65,30 @@
 
             reader.onload = function(e) {
                 const text = e.target.result;
-                originalData = csvToArray(text);
-                const report = generateReport(originalData);
-                saveReport(report);
+                Papa.parse(text, {
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: function(results) {
+                        originalData = results.data;
+                        const report = generateReport(originalData);
+                        saveReport(report);
+                    }
+                });
             };
 
             reader.readAsText(file);
         }
 
-        function csvToArray(str, delimiter = ",") {
-            const headers = str.slice(0, str.indexOf("\n")).split(delimiter);
-            const rows = str.slice(str.indexOf("\n") + 1).split("\n");
-
-            const arr = rows.map(function (row) {
-                const values = row.split(delimiter);
-                const el = headers.reduce(function (object, header, index) {
-                    object[header] = values[index];
-                    return object;
-                }, {});
-                return el;
-            });
-
-            return [headers, ...arr];
-        }
-
         function generateReport(data) {
-            const headers = data[0];
-            const rows = data.slice(1);
+            const headers = Object.keys(data[0]);
             const report = [];
 
-            headers.forEach((header, index) => {
-                const missingCount = rows.filter(row => {
+            headers.forEach(header => {
+                const missingCount = data.filter(row => {
                     const value = row[header];
                     return value === undefined || value === null || value === '' || value.toLowerCase() === 'na';
                 }).length;
-                const totalCount = rows.length;
+                const totalCount = data.length;
                 const missingRatio = ((missingCount / totalCount) * 100).toFixed(3) + '%';
 
                 report.push({
@@ -138,13 +128,12 @@
                 return;
             }
 
-            const headers = originalData[0];
-            const rows = originalData.slice(1);
+            const headers = Object.keys(originalData[0]);
             const report = generateReport(originalData);
 
             const columnsToRemove = report.filter(row => parseFloat(row['缺失比例']) >= threshold).map(row => row['变量名']);
             const newHeaders = headers.filter(header => !columnsToRemove.includes(header));
-            const newRows = rows.map(row => newHeaders.reduce((obj, header) => {
+            const newRows = originalData.map(row => newHeaders.reduce((obj, header) => {
                 obj[header] = row[header];
                 return obj;
             }, {}));
