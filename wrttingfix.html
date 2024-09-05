@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>论文降重提示词生成器</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+            background: black;
+        }
+        .container {
+            position: relative;
+            z-index: 1;
+            color: white;
+            padding: 20px;
+            overflow-y: auto;
+            height: 100%;
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            padding: 10px;
+            color: white;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        #output {
+            margin-top: 20px;
+            white-space: pre-wrap;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            overflow-y: auto;
+            max-height: 300px;
+        }
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+        }
+        .meteor {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            animation: meteor 2s linear infinite;
+        }
+        @keyframes meteor {
+            0% {
+                transform: translate(0, 0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(100px, 100px) scale(0);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>论文改写提示词生成器</h1>
+        <label for="inputContent">待改写的内容:</label><br>
+        <textarea id="inputContent" placeholder="请在此输入需要改写的内容"></textarea><br>
+        <button onclick="generatePrompt()">生成提示词</button>
+        <button onclick="copyPrompt()">复制</button>
+        <div id="output"></div>
+    </div>
+
+    <script>
+        function generatePrompt() {
+            const inputContent = document.getElementById('inputContent').value;
+            const output = document.getElementById('output');
+
+            if (inputContent.trim() === '') {
+                output.textContent = '请输入待改写的内容。';
+                return;
+            }
+
+            const prompt = `我正在写一篇关于[主题]的论文。以下是我需要降低重复率的段落：
+
+${inputContent}
+
+请帮我完成以下任务：
+
+1. 用不同的表达方式重写这段内容，保持原意不变。
+2. 提供可以使用的同义词替换建议。
+3. 重新组织段落结构，使其更加连贯和原创。
+4. 指出任何不必要的重复内容，并提供删减建议。
+5. 提供2-3个可以扩展或深化论点的建议。
+6. 如有必要，建议如何更好地引用和标注参考文献。
+7. 请确保修改后的内容保持学术性和专业性，并与整篇论文的风格一致。
+8. 生成的内容的语言形式必须给出中英双语两个版本
+9. 生成一个表格，两列，第一列的原文，第二列是改写版本，第三列是对改写的地方进行改写理由说明`;
+
+            output.textContent = prompt;
+        }
+
+        function copyPrompt() {
+            const output = document.getElementById('output');
+            if (output.textContent.trim() === '') {
+                alert('请先生成提示词。');
+                return;
+            }
+
+            const tempInput = document.createElement('textarea');
+            tempInput.value = output.textContent;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+            alert('复制成功');
+        }
+
+        function createStars() {
+            const stars = document.createElement('div');
+            stars.style.position = 'absolute';
+            stars.style.top = '0';
+            stars.style.left = '0';
+            stars.style.width = '100%';
+            stars.style.height = '100%';
+            stars.style.zIndex = '0';
+
+            for (let i = 0; i < 100; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = `${Math.random() * 100}vw`;
+                star.style.top = `${Math.random() * 100}vh`;
+                stars.appendChild(star);
+            }
+
+            document.body.appendChild(stars);
+        }
+
+        function createMeteors() {
+            const meteors = document.createElement('div');
+            meteors.style.position = 'absolute';
+            meteors.style.top = '0';
+            meteors.style.left = '0';
+            meteors.style.width = '100%';
+            meteors.style.height = '100%';
+            meteors.style.zIndex = '0';
+
+            for (let i = 0; i < 10; i++) {
+                const meteor = document.createElement('div');
+                meteor.className = 'meteor';
+                meteor.style.left = `${Math.random() * 100}vw`;
+                meteor.style.top = `${Math.random() * 100}vh`;
+                meteor.style.animationDelay = `${Math.random() * 2}s`;
+                meteors.appendChild(meteor);
+            }
+
+            document.body.appendChild(meteors);
+        }
+
+        createStars();
+        createMeteors();
+    </script>
+</body>
+</html>
