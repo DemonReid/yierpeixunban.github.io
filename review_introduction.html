@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>医学文献综述前言生成器</title>
+    <style>
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            background-color: #1c1c1c;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        .container {
+            width: 80%;
+            max-width: 800px;
+            background-color: #2c2c2c;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+        h1 {
+            text-align: center;
+            color: #4CAF50;
+        }
+        .input-field {
+            width: 100%;
+            padding: 12px 20px;
+            margin: 8px 0;
+            box-sizing: border-box;
+            border: 2px solid #ccc;
+            border-radius: 4px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            background-color: #3c3c3c;
+            color: #ffffff;
+        }
+        .input-field:focus {
+            border-color: #4CAF50;
+            box-shadow: 0 0 8px 0 rgba(76, 175, 80, 0.5);
+        }
+        .generate-button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 12px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .generate-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        .output-area {
+            width: 100%;
+            padding: 12px 20px;
+            margin: 8px 0;
+            box-sizing: border-box;
+            border: 2px solid #ccc;
+            border-radius: 4px;
+            background-color: #3c3c3c;
+            min-height: 200px;
+            overflow-y: auto;
+            color: #ffffff;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        .modal-content {
+            background-color: #2c2c2c;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 800px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+            color: #ffffff;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .copy-button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .copy-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>医学文献综述前言生成器</h1>
+        <input type="text" id="medical-theme" class="input-field" placeholder="输入医学主题，如糖尿病管理">
+        <input type="text" id="disease-name" class="input-field" placeholder="输入疾病名称，如2型糖尿病">
+        <input type="number" id="total-words" class="input-field" placeholder="输入前言总字数，如750">
+        <input type="text" id="journal-name" class="input-field" placeholder="输入参考文献著录格式对标的期刊名，如New England Journal of Medicine">
+        <textarea id="other-info" class="input-field" placeholder="输入从其他文献获得的额外信息、数据或关键点"></textarea>
+        <button class="generate-button" onclick="generateIntroduction()">生成前言</button>
+    </div>
+
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <div id="modal-output" class="output-area"></div>
+            <button class="copy-button" onclick="copyToClipboard()">复制</button>
+        </div>
+    </div>
+
+    <script>
+        function generateIntroduction() {
+            const medicalTheme = document.getElementById('medical-theme').value;
+            const diseaseName = document.getElementById('disease-name').value;
+            const totalWords = parseInt(document.getElementById('total-words').value);
+            const journalName = document.getElementById('journal-name').value;
+            const otherInfo = document.getElementById('other-info').value;
+
+            const sectionWords = {
+                background: Math.round(totalWords * 0.2),
+                treatment: Math.round(totalWords * 0.2),
+                concepts: Math.round(totalWords * 0.2),
+                challenges: Math.round(totalWords * 0.2),
+                research: Math.round(totalWords * 0.15),
+                purpose: Math.round(totalWords * 0.15)
+            };
+
+            const introduction = `
+您是一位在${medicalTheme}领域拥有丰富临床经验、科研背景和写作能力的资深专科医生。请基于以下信息撰写一篇医学文献综述的前言：
+
+文献综述主题：${medicalTheme}
+
+额外信息或关键点：${otherInfo}
+
+请按照以下框架撰写一个简洁而全面的医学文献综述前言（约${totalWords}字）：
+
+疾病背景与流行病学（约${sectionWords.background}字）
+
+简要描述${diseaseName}的定义、分类和临床特征
+提供最新的流行病学数据，包括发病率、患病率和疾病负担
+概述疾病的病因学和发病机制的当前认知
+现有治疗策略概述（约${sectionWords.treatment}字）
+
+简述${diseaseName}的现有治疗指南和常用方法
+强调${medicalTheme}在当前治疗策略中的地位和重要性
+提及治疗效果和局限性，引出进一步研究的必要性
+${medicalTheme}相关的关键概念（约${sectionWords.concepts}字）
+
+详细解释与${medicalTheme}相关的核心概念和术语
+描述${medicalTheme}的作用机制或应用原理
+简述${medicalTheme}在临床实践中的潜在优势和创新点
+临床挑战与争议（约${sectionWords.challenges}字）
+
+详细说明${medicalTheme}在临床应用中面临的具体挑战
+解释这些挑战对患者管理和预后的影响
+概述学术界对${medicalTheme}存在的主要争议和不同观点
+研究进展与知识缺口（约${sectionWords.research}字）
+
+简要回顾${medicalTheme}相关的最新研究进展
+指出当前研究中存在的主要知识缺口
+强调解决这些问题对改善患者预后的重要性
+综述目的与范围（约${sectionWords.purpose}字）
+
+明确陈述本综述旨在达成的具体目标
+列出本综述将涵盖的${medicalTheme}的具体方面
+解释这个综述将如何指导临床实践和未来研究方向
+整合额外信息
+
+将用户提供的额外信息或关键点恰当地整合到上述各部分中
+确保新增信息与原有内容保持一致性和连贯性
+如有必要，调整各部分的篇幅以适应新增信息，但保持总体结构不变
+写作要求：
+
+使用准确的医学术语，首次出现时给出全称和缩写
+引用最新的研究数据和指南，使用[n]的格式上标标注参考文献
+列出具体引用参考文献，著录格式同${journalName}著录格式要求
+保持客观中立的学术语言，同时突出${medicalTheme}的临床相关性
+确保各部分之间逻辑连贯，整体结构清晰
+适当使用过渡语，使行文流畅自然
+参考文献要求：
+
+优先引用近5年内发表的高质量文献，包括系统综述、荟萃分析和大型临床试验
+引用来源应包括高影响因子的专业期刊和权威指南
+每个关键观点都应有相应的参考文献支持
+参考文献应按在正文中出现的顺序编号并在文末列出
+论文呈现形式：
+
+前言应为独立章节，不编号，置于摘要之后，引言或背景章节之前
+使用12号Times New Roman字体，1.5倍行距
+段落首行缩进2个字符
+页边距设置为：上下2.54cm，左右3.18cm
+页码从前言开始编号，使用阿拉伯数字
+额外要求：
+
+在整合额外信息时，确保：
+新增内容与原有框架自然融合，不显突兀
+适当调整各部分的内容和篇幅，以容纳新信息
+保持整体论述的逻辑性和连贯性
+如果额外信息包含新的参考文献，请按要求正确引用
+必要时，可以略微超出原定字数限制，但应控制在1100字以内
+完成后，请仔细检查您的前言，确保它为读者提供了一个全面、信息丰富且富有洞察力的${medicalTheme}导入，明确传达了综述的目的和临床价值，并符合上述所有写作和呈现要求。前言应当简洁明了，通常不超过整篇综述长度的10%。它应该吸引读者的兴趣，同时为接下来的详细讨论奠定基础。
+
+注意：生成的内容必须与“文献综述的整体规划”一致。如果不一致，必须进行修订，使之符合。
+            `;
+
+            document.getElementById('modal-output').innerText = introduction;
+            document.getElementById('modal').style.display = "block";
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = "none";
+        }
+
+        function copyToClipboard() {
+            const modalOutput = document.getElementById('modal-output');
+            const range = document.createRange();
+            range.selectNode(modalOutput);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    alert('复制成功');
+                } else {
+                    alert('复制失败，请手动复制');
+                }
+            } catch (err) {
+                alert('复制失败，请手动复制');
+            }
+
+            window.getSelection().removeAllRanges();
+        }
+    </script>
+</body>
+</html>

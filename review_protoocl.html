@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文献综述整体规划生成器</title>
+    <style>
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            background-color: #1c1c1c;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        .container {
+            width: 80%;
+            max-width: 800px;
+            background-color: #2c2c2c;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+        h1 {
+            text-align: center;
+            color: #4CAF50;
+        }
+        .input-section {
+            margin-bottom: 20px;
+        }
+        .input-section label {
+            display: block;
+            margin-bottom: 8px;
+            color: #ffffff;
+        }
+        .input-section input[type="text"] {
+            width: 100%;
+            padding: 12px 20px;
+            margin: 8px 0;
+            box-sizing: border-box;
+            border: 2px solid #ccc;
+            border-radius: 4px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            background-color: #3c3c3c;
+            color: #ffffff;
+        }
+        .input-section input[type="text"]:focus {
+            border-color: #4CAF50;
+            box-shadow: 0 0 8px 0 rgba(76, 175, 80, 0.5);
+        }
+        .input-section button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 12px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .input-section button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        .output-section {
+            width: 100%;
+            padding: 12px 20px;
+            margin: 8px 0;
+            box-sizing: border-box;
+            border: 2px solid #ccc;
+            border-radius: 4px;
+            background-color: #3c3c3c;
+            min-height: 200px;
+            overflow-y: auto;
+            color: #ffffff;
+        }
+        .copy-button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .copy-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>文献综述整体规划生成器</h1>
+        <div class="input-section">
+            <label for="research-topic">请输入医学文献综述的主题（例如：PD-1治疗非小细胞肺癌进展/糖尿病足治疗进展）：</label>
+            <input type="text" id="research-topic" name="research-topic" size="50">
+            <button onclick="generatePlan()">生成整体规划提示词</button>
+        </div>
+        <div class="output-section" id="output">
+            <!-- 生成的文本将显示在这里 -->
+        </div>
+        <button class="copy-button" onclick="copyToClipboard()">复制</button>
+    </div>
+
+    <script>
+        function generatePlan() {
+            const topic = document.getElementById('research-topic').value;
+            const output = document.getElementById('output');
+
+            if (topic.trim() === "") {
+                output.innerText = "请输入一个有效的研究主题。";
+                return;
+            }
+
+            const planTemplate = `
+请为主题"[研究主题]"的文献综述创建一个整体规划表格。表格应包含以下列：
+
+主要部分
+子主题
+关键点
+最新研究进展
+争议性问题
+未来研究方向
+在创建这个规划时，请特别注意以下几点：
+
+最新进展：
+
+确保每个部分都包含最近2-3年内的最新研究成果和突破性发现
+重点关注已发表在该领域高影响因子期刊上的研究
+包括最新的临床试验结果或关键实验发现
+创新性和前沿性：
+
+突出新兴的研究方向和技术
+包括跨学科研究，展示该主题与其他领域的交叉
+实际应用价值：
+
+强调研究成果的实际应用价值和潜在影响
+讨论如何将研究成果快速转化为实践
+争议性问题：
+
+识别并讨论该领域存在的主要争议和未解决问题
+提供不同观点和证据，鼓励学术讨论
+全球化视角：
+
+包括来自不同地区和背景的研究数据
+讨论研究主题在全球范围内的应用差异和挑战
+多学科整合：
+
+强调多学科合作在推动该研究主题进展中的重要性
+包括来自相关领域的不同研究视角
+方法学创新：
+
+突出新型研究方法和技术
+讨论这些新方法如何推动对研究主题的深入理解
+未来展望：
+
+基于当前研究趋势，预测未来3-5年内可能出现的重大突破
+讨论潜在的新研究方向和策略
+平衡性和客观性：
+
+确保对不同研究结果和观点进行公正的呈现
+在适当的地方提供批评性分析
+实用性：
+
+包括对该领域研究者和实践者有实际指导意义的内容
+讨论如何将研究发现应用于实际工作和未来研究设计
+请确保表格内容全面、深入且富有洞察力，能够吸引该领域的研究者和实践者的兴趣。表格应当为读者提供该领域的最新全面概览，同时突出未来研究的重要方向。
+
+注意：
+
+主要部分应包括但不限于：引言、核心主题（可能有多个）、方法学、应用、挑战与局限性、未来展望等
+每个主要部分应有2-4个相关的子主题
+关键点应简明扼要，突出重要信息
+最新研究进展应聚焦近期重要发现
+争议性问题应客观呈现不同观点
+未来研究方向应基于当前进展和挑战提出有见地的建议
+            `;
+
+            const generatedPlan = planTemplate.replace(/\[研究主题\]/g, topic);
+            output.innerText = generatedPlan;
+        }
+
+        function copyToClipboard() {
+            const output = document.getElementById('output');
+            const range = document.createRange();
+            range.selectNode(output);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    alert('复制成功');
+                } else {
+                    alert('复制失败，请手动复制');
+                }
+            } catch (err) {
+                alert('复制失败，请手动复制');
+            }
+
+            window.getSelection().removeAllRanges();
+        }
+    </script>
+</body>
+</html>

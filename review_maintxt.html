@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文献综述主体内容提示词生成器</title>
+    <style>
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            background-color: #1c1c1c;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        .container {
+            width: 80%;
+            max-width: 800px;
+            background-color: #2c2c2c;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+        h1 {
+            text-align: center;
+            color: #4CAF50;
+        }
+        .input-section {
+            margin-bottom: 20px;
+        }
+        .input-section label {
+            display: block;
+            margin-bottom: 8px;
+            color: #ffffff;
+        }
+        .input-section input[type="text"] {
+            width: 100%;
+            padding: 12px 20px;
+            margin: 8px 0;
+            box-sizing: border-box;
+            border: 2px solid #ccc;
+            border-radius: 4px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            background-color: #3c3c3c;
+            color: #ffffff;
+        }
+        .input-section input[type="text"]:focus {
+            border-color: #4CAF50;
+            box-shadow: 0 0 8px 0 rgba(76, 175, 80, 0.5);
+        }
+        .input-section button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 12px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .input-section button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        .output-section {
+            width: 100%;
+            padding: 12px 20px;
+            margin: 8px 0;
+            box-sizing: border-box;
+            border: 2px solid #ccc;
+            border-radius: 4px;
+            background-color: #3c3c3c;
+            min-height: 200px;
+            overflow-y: auto;
+            color: #ffffff;
+        }
+        .copy-button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .copy-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+        }
+        #popup {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        #popup-content {
+            width: 80%;
+            max-width: 800px;
+            background-color: #2c2c2c;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        #popup-buttons {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>文献综述主体内容提示词生成器</h1>
+        <div class="input-section">
+            <label for="research-topic">研究主题：</label>
+            <input type="text" id="research-topic" name="research-topic" placeholder="可直接输入综述题目或主题，例如：造血干细胞进展或利妥昔单抗治疗重症肌无力进展">
+        </div>
+        <div class="input-section">
+            <label for="journal-name">文献著录格式对标期刊名称：</label>
+            <input type="text" id="journal-name" name="journal-name">
+        </div>
+        <div class="input-section">
+            <label for="start-number">参考文献起始数：</label>
+            <input type="text" id="start-number" name="start-number">
+        </div>
+        <div class="input-section">
+            <label for="content-intent">具体内容写作意向及大意：</label>
+            <input type="text" id="content-intent" name="content-intent" placeholder="例如：3.1 血液学和影像组学数据整合">
+        </div>
+        <div class="input-section">
+            <button onclick="generateOutline()">文献综述主体内容大纲提示词</button>
+            <button onclick="generateContent()">具体内容提示词</button>
+            <button onclick="generateDiscussion()">生成讨论及结论提示词</button>
+        </div>
+    </div>
+
+    <!-- 弹出窗口 -->
+    <div id="popup">
+        <div id="popup-content" class="output-section"></div>
+        <div id="popup-buttons">
+            <button class="copy-button" onclick="copyToClipboard()">复制</button>
+            <button class="copy-button" onclick="closePopup()">关闭</button>
+        </div>
+    </div>
+
+    <script>
+        function generateOutline() {
+            const topic = document.getElementById('research-topic').value;
+            const journalName = document.getElementById('journal-name').value;
+            const startNumber = document.getElementById('start-number').value;
+            const popupContent = document.getElementById('popup-content');
+            const popup = document.getElementById('popup');
+
+            if (topic.trim() === "") {
+                alert("请输入一个有效的研究主题。");
+                return;
+            }
+
+            const outlineTemplate = `
+请为主题“${topic}”撰写文献综述的主体部分题纲，并列出每一个部分的写作意向和内容大意。
+
+在撰写过程中，请注意以下要求：
+
+1. 遵循整体规划：
+   - 自动读取上下文： 基于之前生成的整体规划进行写作，确保内容与规划一致，不偏离主题。
+
+2. 组织方式选择：
+   - 预设组织方式： 根据以下方式之一来组织内容，请选择最适合研究主题的方式：
+     - 主题式（Thematic）： 按照不同的主题或概念进行分类讨论。
+     - 时间顺序式（Chronological）： 按照研究发表的时间顺序，展示领域的发展和演变。
+     - 方法学式（Methodological）： 根据研究所采用的方法或技术进行分类分析。
+     - 理论框架式（Theoretical）： 比较和讨论不同的理论观点或模型。
+
+   - 策略和方案： 根据所选的组织方式，提供相应的策略和方案，每个部分应有明确的子主题和逻辑关系。
+
+3. 分段显示内容：
+   - 内容划分： 将主体内容划分为多个部分，默认分段展示，以便于阅读和理解。
+   - 章节结构： 为每个主要部分和子部分添加清晰的标题和副标题，明确主题和重点。
+
+4. 融合用户提供的信息：
+   - 自动整合： 如用户提供了额外的检索信息，需自动将其融合到内容中。
+   - 逻辑衔接： 确保新增内容与现有内容在逻辑上连贯，过渡自然，保证内容的完整性和一致性。
+   - 准确性和可读性： 对用户提供的信息进行核实，确保其正确性，并以清晰、简洁的语言表述。
+
+5. 保证学术深度：
+   - 专业性和权威性： 内容应体现出深厚的学术功底，引用权威文献，满足专业领域专家的期望。
+   - 批判性分析： 对现有文献进行深入的批判性分析，比较不同研究的观点、方法和结果，指出优缺点。
+   - 综合与评价： 综合不同研究的成果，评估其对研究领域的贡献及影响。
+
+6. 基于整体规划：
+   - 一致性： 严格按照之前的整体规划进行撰写，确保内容与规划目标和方向一致。
+   - 主题聚焦： 聚焦研究主题，避免无关或偏离主题的内容。
+
+7. 写作内容的来源：
+   - 主要内容必须来源于用户上传的内容（包括pdf文档，word文档，网页）
+8. 写作要求：
+   - 语言规范： 使用正式、专业、准确的学术语言表达，避免口语化和模糊表述。
+   - 逻辑清晰： 结构严谨，层次分明，论点明确，论据充分，过渡自然。
+   - 避免重复： 避免内容冗长和重复，确保信息精炼、有价值。
+
+9. 参考文献和引证：
+   - 最新研究： 引用最近2-3年内的最新研究成果，突出领域内的研究前沿和最新进展。
+   - 高影响力来源： 优先引用发表在高影响因子期刊上的研究，增强内容的权威性和可信度。
+   - 规范引用： 按照学术规范对引用的文献进行标注，避免学术不端。
+   - 要列出参考文献，文献引用格式为[n]，上标；文献著录格式同【${journalName}】，文献起始数字为【${startNumber}】。
+   - 参考文献只能来自用户上传的资料。
+10. 附加要求：
+    - 图表和模型： 适当使用图表、模型或框架，辅助解释复杂概念或数据。
+    - 小结： 在每个主要部分的末尾，简要总结该部分的关键要点，为读者提供清晰的重点回顾。
+
+11. 对最后生成的内容进行润色和加工，达到可以发表高质量SCI期刊的水平。
+
+---
+
+撰写步骤：
+
+1. 确定组织方式：
+   - 根据研究主题的特点，选择最适合的组织方式（主题、时间、方法、理论），并按照该方式规划主体内容的结构。
+
+2. 结构规划：
+   - 列出主要部分和子部分的标题，确保层次清晰，逻辑严密。
+
+3. 撰写主体内容：
+   - 综述已有研究： 对每个子主题，综述相关的研究成果，提炼主要观点和发现。
+   - 批判性分析： 比较不同研究之间的异同，评价其方法、结果和意义。
+   - 融合信息： 将用户提供的额外信息有机地融入相应的部分，确保内容完整。
+
+4. 总结与过渡：
+   - 每个部分结束时，进行总结，并为下一部分做好逻辑上的衔接。
+
+5. 确保学术深度：
+   - 引用权威文献，运用专业术语，展示对研究领域的深刻理解。
+
+6. 审核与完善：
+   - 通读全文，检查逻辑连贯性和语言表达，确保内容准确、流畅。
+
+---
+
+- 主体部分：
+
+  1. 主要部分一（根据组织方式命名）
+     - 子部分1.1
+       - 内容撰写
+     - 子部分1.2
+       - 内容撰写
+
+  2. 主要部分二
+     - 子部分2.1
+       - 内容撰写
+     - 子部分2.2
+       - 内容撰写
+
+  3. 主要部分三
+     - 子部分3.1
+       - 内容撰写
+     - 子部分3.2
+       - 内容撰写
+            `;
+
+            popupContent.innerText = outlineTemplate;
+            popup.style.display = "flex";
+        }
+
+        function generateContent() {
+            const contentIntent = document.getElementById('content-intent').value;
+            const journalName = document.getElementById('journal-name').value;
+            const startNumber = document.getElementById('start-number').value;
+            const popupContent = document.getElementById('popup-content');
+            const popup = document.getElementById('popup');
+
+            if (contentIntent.trim() === "") {
+                alert("请输入具体内容写作意向及大意。");
+                return;
+            }
+
+            const contentTemplate = `
+我现在要撰写【${contentIntent}】。基于我提供的网页内容撰写，并列出参考文献，参考文献必须来自于网页。著录格式为${journalName}，参考文献起始数字为【${startNumber}】。
+
+写作要求如下：
+
+1. 遵循整体规划：
+   - 自动读取上下文： 基于之前生成的整体规划进行写作，确保内容与规划一致，不偏离主题。
+
+
+2. 融合用户提供的信息：
+   - 自动整合： 如用户提供了额外的检索信息，需自动将其融合到内容中。
+   - 逻辑衔接： 确保新增内容与现有内容在逻辑上连贯，过渡自然，保证内容的完整性和一致性。
+   - 准确性和可读性： 对用户提供的信息进行核实，确保其正确性，并以清晰、简洁的语言表述。
+
+3. 保证学术深度：
+   - 专业性和权威性： 内容应体现出深厚的学术功底，引用权威文献，满足专业领域专家的期望。
+   - 批判性分析： 对现有文献进行深入的批判性分析，比较不同研究的观点、方法和结果，指出优缺点。
+   - 综合与评价： 综合不同研究的成果，评估其对研究领域的贡献及影响。
+
+4. 基于整体规划：
+   - 一致性： 严格按照之前的整体规划进行撰写，确保内容与规划目标和方向一致。
+   - 主题聚焦： 聚焦研究主题，避免无关或偏离主题的内容。
+
+5. 写作内容的来源：
+   - 主要内容必须来源于用户上传的内容（包括pdf文档，word文档，网页）
+6. 写作要求：
+   - 语言规范： 使用正式、专业、准确的学术语言表达，避免口语化和模糊表述。
+   - 逻辑清晰： 结构严谨，层次分明，论点明确，论据充分，过渡自然。
+   - 避免重复： 避免内容冗长和重复，确保信息精炼、有价值。
+
+7 参考文献和引证：
+   - 最新研究： 引用最近2-3年内的最新研究成果，突出领域内的研究前沿和最新进展。
+   - 高影响力来源： 优先引用发表在高影响因子期刊上的研究，增强内容的权威性和可信度。
+   - 规范引用： 按照学术规范对引用的文献进行标注，避免学术不端。
+   - 要列出参考文献，文献引用格式为[n]，上标；文献著录格式同【${journalName}】，文献起始数字为【${startNumber}】。
+   - 参考文献只能来自用户上传的资料。
+8. 附加要求：
+    - 图表和模型： 适当使用图表、模型或框架，辅助解释复杂概念或数据。
+    - 小结： 在每个主要部分的末尾，简要总结该部分的关键要点，为读者提供清晰的重点回顾。
+
+9. 对最后生成的内容进行润色和加工，达到可以发表高质量SCI期刊的水平。。
+            `;
+
+            popupContent.innerText = contentTemplate;
+            popup.style.display = "flex";
+        }
+
+        function generateDiscussion() {
+            const popupContent = document.getElementById('popup-content');
+            const popup = document.getElementById('popup');
+
+            const discussionTemplate = `
+总结主要发现：
+
+简要概括前文的主要研究结果和重要观点。
+强调研究领域的发展现状和取得的关键成果。
+系统性地比较不同研究方向的进展，突出重要突破。
+深入分析和评价：
+
+对收集到的文献进行批判性分析，讨论其优势和不足。
+比较不同研究方法和结果，评价其有效性和可靠性。
+深入探讨关键技术或方法的作用机制。
+分析长期随访数据或长期安全性问题。
+揭示研究空白：
+
+指出当前研究中尚未解决的问题、争议或矛盾。
+强调需要进一步研究的领域和挑战。
+讨论现有研究在方法学上的局限性。
+提出新见解和理论：
+
+基于分析，提出自己的观点、假设或理论框架。
+讨论这些新观点如何填补研究空白，推动领域发展。
+提出整合多个研究方向的新模型或概念。
+跨学科整合：
+
+探讨研究领域与其他相关学科的交叉融合。
+分析新兴技术（如人工智能、纳米技术）在该领域的潜在应用。
+临床转化与应用：
+
+讨论研究成果从基础到临床应用的转化路径。
+分析新技术或方法在临床实践中的潜在影响。
+考虑患者视角，讨论研究对改善患者生活质量的影响。
+伦理和社会影响：
+
+探讨研究中涉及的伦理问题和潜在的社会影响。
+讨论如何平衡科技进步和伦理考量。
+展望未来研究方向：
+
+建议未来可能的研究方向，提出有意义的研究问题。
+提议改进现有研究方法或采用新的研究方法。
+讨论克服当前研究局限性的可能策略。
+全球视角：
+
+分析研究领域在不同地区或国家的发展差异。
+讨论政策、经济等因素对研究发展的影响。
+预测该领域的全球发展趋势。
+成本效益分析：
+
+讨论新技术或方法的成本效益。
+分析在实际应用中可能面临的经济挑战。
+逻辑连贯和承上启下：
+
+确保讨论部分与前言、方法和主要发现部分紧密关联。
+使用过渡句和连接词，增强文章的连贯性。
+引起同行关注：
+
+强调研究对理论和实践的贡献和意义。
+讨论研究成果对相关领域或行业的影响。
+提出可能改变当前研究范式的创新性观点。
+学术规范：
+
+确保语言专业、准确，无语法和拼写错误。
+正确引用文献，遵循目标期刊或会议的格式要求。
+使用最新的高质量文献支持论点。
+注意事项：
+
+文章应保持客观性和批判性，避免主观偏见。
+引用权威文献支持论点，确保引用的准确性和相关性。
+强调文章的创新性和独特贡献，以引起读者兴趣。
+平衡讨论的广度和深度，确保关键问题得到充分探讨。
+考虑多角度观点，包括支持和反对的证据。
+明确指出研究的局限性，并提出如何在未来研究中克服这些局限。
+            `;
+
+            popupContent.innerText = discussionTemplate;
+            popup.style.display = "flex";
+        }
+
+        function copyToClipboard() {
+            const popupContent = document.getElementById('popup-content');
+            const range = document.createRange();
+            range.selectNode(popupContent);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    alert('复制成功');
+                } else {
+                    alert('复制失败，请手动复制');
+                }
+            } catch (err) {
+                alert('复制失败，请手动复制');
+            }
+
+            window.getSelection().removeAllRanges();
+        }
+
+        function closePopup() {
+            const popup = document.getElementById('popup');
+            popup.style.display = "none";
+        }
+    </script>
+</body>
+</html>
