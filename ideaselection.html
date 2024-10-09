@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>易AI选题相关提示词及文档处理器</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .glassmorphism {
+            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        .btn-hover {
+            transition: all 0.3s ease;
+        }
+        .btn-hover:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .modal-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            max-width: 90%;
+            width: 600px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+    <div class="glassmorphism p-8 w-full max-w-4xl animate-fade-in">
+        <h1 class="text-3xl font-bold mb-6 text-white text-center">易AI选题相关提示词及文档处理器</h1>
+        <div class="space-y-4">
+            <div class="flex items-center space-x-4">
+                <input type="file" id="fileInput" accept=".txt" class="hidden">
+                <label for="fileInput" class="flex-grow py-2 px-4 bg-white text-blue-600 rounded-lg cursor-pointer hover:bg-blue-50 transition duration-300 ease-in-out">
+                    <span class="text-sm font-medium">选择文件</span>
+                </label>
+                <span id="fileUploadStatus" class="text-white text-sm"></span>
+                <button id="processButton" class="btn-hover bg-blue-600 text-white px-6 py-2 rounded-lg font-medium">处理文件</button>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                <button id="generatePromptButton" class="btn-hover bg-purple-600 text-white px-4 py-2 rounded-lg font-medium">生成提取结局提示词</button>
+                <button id="dataMiningButton" class="btn-hover bg-yellow-500 text-white px-4 py-2 rounded-lg font-medium">数据挖掘路径选暴露变量</button>
+                <button id="literatureButton" class="btn-hover bg-green-500 text-white px-4 py-2 rounded-lg font-medium">文献路径选暴露变量</button>
+                <button id="associationButton" class="btn-hover bg-red-500 text-white px-4 py-2 rounded-lg font-medium">暴露及结局关联现状</button>
+            </div>
+        </div>
+        <div id="countDisplay" class="mt-4 text-white font-semibold"></div>
+        <div id="output" class="mt-4 p-4 bg-white bg-opacity-20 rounded-lg h-64 overflow-y-auto whitespace-pre-wrap text-white"></div>
+        <div class="flex items-center mt-4 space-x-4">
+            <input type="text" id="fileName" placeholder="输出文件名" class="flex-grow p-2 rounded-lg border-2 border-white bg-transparent text-white placeholder-gray-300">
+            <button id="exportButton" class="btn-hover bg-green-500 text-white px-6 py-2 rounded-lg font-medium">导出</button>
+        </div>
+    </div>
+
+    <!-- 提示词弹框 -->
+    <div id="promptModal" class="modal-background hidden">
+        <div class="modal-content">
+            <h2 class="text-2xl font-bold mb-4">提取结局提示词</h2>
+            <p id="promptText" class="mb-4 p-4 border rounded bg-gray-50 h-64 overflow-y-auto whitespace-pre-wrap"></p>
+            <div class="flex justify-end">
+                <button id="closeModalButton" class="btn-hover bg-gray-300 text-black px-6 py-2 rounded-lg font-medium">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 数据挖掘路径选暴露变量弹框 -->
+    <div id="dataMiningModal" class="modal-background hidden">
+        <div class="modal-content">
+            <h2 class="text-2xl font-bold mb-4">数据挖掘路径选暴露变量</h2>
+            <input type="text" id="diseaseName" placeholder="疾病名称" class="w-full p-2 border rounded-lg mb-2">
+            <input type="text" id="outcomeVariable" placeholder="结局变量名称" class="w-full p-2 border rounded-lg mb-2">
+            <textarea id="exposureVariables" placeholder="数据挖掘得到的候选暴露变量名称" class="w-full p-2 border rounded-lg mb-4 h-32"></textarea>
+            <div class="flex justify-between">
+                <button id="generateDataMiningPromptButton" class="btn-hover bg-blue-600 text-white px-6 py-2 rounded-lg font-medium">生成提示词</button>
+                <button id="closeDataMiningModalButton" class="btn-hover bg-gray-300 text-black px-6 py-2 rounded-lg font-medium">关闭</button>
+            </div>
+            <div id="dataMiningPromptResult" class="mt-4 p-4 border rounded-lg bg-gray-50 h-64 overflow-y-auto whitespace-pre-wrap hidden"></div>
+        </div>
+    </div>
+
+    <!-- 文献路径选暴露变量弹框 -->
+    <div id="literatureModal" class="modal-background hidden">
+        <div class="modal-content">
+            <h2 class="text-2xl font-bold mb-4">文献路径选暴露变量</h2>
+            <input type="text" id="literatureDiseaseName" placeholder="疾病名称" class="w-full p-2 border rounded-lg mb-2">
+            <input type="text" id="literatureOutcomeVariable" placeholder="首要结局变量" class="w-full p-2 border rounded-lg mb-2">
+            <div class="flex justify-between mt-4">
+                <button id="generateLiteraturePromptButton" class="btn-hover bg-blue-600 text-white px-6 py-2 rounded-lg font-medium">生成提示词</button>
+                <button id="closeLiteratureModalButton" class="btn-hover bg-gray-300 text-black px-6 py-2 rounded-lg font-medium">关闭</button>
+            </div>
+            <div id="literaturePromptResult" class="mt-4 p-4 border rounded-lg bg-gray-50 h-64 overflow-y-auto whitespace-pre-wrap hidden"></div>
+        </div>
+    </div>
+
+    <!-- 暴露及结局关联现状弹框 -->
+    <div id="associationModal" class="modal-background hidden">
+        <div class="modal-content">
+            <h2 class="text-2xl font-bold mb-4">暴露及结局关联现状</h2>
+            <input type="text" id="exposureVariable" placeholder="暴露变量" class="w-full p-2 border rounded-lg mb-2">
+            <input type="text" id="outcomeVariableForAssociation" placeholder="结局变量" class="w-full p-2 border rounded-lg mb-2">
+            <input type="text" id="studyPopulation" placeholder="研究人群" class="w-full p-2 border rounded-lg mb-4">
+            <div class="flex justify-between">
+                <button id="generateAssociationPromptButton" class="btn-hover bg-blue-600 text-white px-6 py-2 rounded-lg font-medium">生成提示词</button>
+                <button id="closeAssociationModalButton" class="btn-hover bg-gray-300 text-black px-6 py-2 rounded-lg font-medium">关闭</button>
+            </div>
+            <div id="associationPromptResult" class="mt-4 p-4 border rounded-lg bg-gray-50 h-64 overflow-y-auto whitespace-pre-wrap hidden"></div>
+        </div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const processButton = document.getElementById('processButton');
+        const generatePromptButton = document.getElementById('generatePromptButton');
+        const output = document.getElementById('output');
+        const exportButton = document.getElementById('exportButton');
+        const fileName = document.getElementById('fileName');
+        const promptModal = document.getElementById('promptModal');
+        const promptText = document.getElementById('promptText');
+        const closeModalButton = document.getElementById('closeModalButton');
+        const countDisplay = document.getElementById('countDisplay');
+        const fileUploadStatus = document.getElementById('fileUploadStatus');
+
+        let extractedText = '';
+        let extractionCount = 0;
+
+        fileInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                fileUploadStatus.textContent = `上传成功: ${file.name}`;
+            } else {
+                fileUploadStatus.textContent = '';
+            }
+        });
+
+        processButton.addEventListener('click', () => {
+            const file = fileInput.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const text = e.target.result;
+                    const { numberedExtractions, count } = extractBeforeDOI(text);
+                    extractedText = numberedExtractions;
+                    extractionCount = count;
+                    output.textContent = extractedText || '未找到可提取的内容。';
+                    countDisplay.textContent = `提取内容数量：${extractionCount}`;
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        function extractBeforeDOI(text) {
+            const regex = /(?:(?:[^.]+\.){1,5})\s*(?=DOI:)/g;
+            const matches = text.match(regex) || [];
+            
+            const numberedExtractions = matches.map((extraction, index) => {
+                const sentences = extraction.trim().split('.').filter(s => s.trim() !== '');
+                const lastFiveSentences = sentences.slice(-5).join('. ') + '.';
+                return `提取 ${index + 1}:\n${lastFiveSentences}`;
+            }).join('\n\n');
+
+            return {
+                numberedExtractions,
+                count: matches.length
+            };
+        }
+
+        generatePromptButton.addEventListener('click', () => {
+            const prompt = generatePrompt();
+            promptText.textContent = prompt;
+            promptModal.classList.remove('hidden');
+        });
+
+        closeModalButton.addEventListener('click', () => {
+            closeModal(promptModal);
+        });
+
+        exportButton.addEventListener('click', () => {
+            if (extractedText) {
+                const blob = new Blob([extractedText], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileName.value || 'processed_text.txt';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+        });
+
+        function generatePrompt() {
+            return `我上传了一个文档。文档中包含了多篇文献的摘要结论。现在，我要你列出这些结论中出现的结局变量的名称，并根据变量名称+（出现频次）的格式以中文将这些变量名进行输出。必须记住：所有的结局变量必须且只能来自我上传的文档中内容。对于意思相同或相近的结局变量，进行识别和合并，对于其各自的频次则进行频次的叠加。现在，帮我输出。此外，如果存在多个结局变量的可能，将其分别列出，绝对不能用变量名+变量名的形式一起输出。`;
+        }
+
+        // 数据挖掘路径选暴露变量相关代码
+        const dataMiningButton = document.getElementById('dataMiningButton');
+        const dataMiningModal = document.getElementById('dataMiningModal');
+        const closeDataMiningModalButton = document.getElementById('closeDataMiningModalButton');
+        const generateDataMiningPromptButton = document.getElementById('generateDataMiningPromptButton');
+        const dataMiningPromptResult = document.getElementById('dataMiningPromptResult');
+
+        dataMiningButton.addEventListener('click', () => {
+            dataMiningModal.classList.remove('hidden');
+        });
+
+        closeDataMiningModalButton.addEventListener('click', () => {
+            closeModal(dataMiningModal);
+        });
+
+        generateDataMiningPromptButton.addEventListener('click', () => {
+            const diseaseName = document.getElementById('diseaseName').value;
+            const outcomeVariable = document.getElementById('outcomeVariable').value;
+            const exposureVariables = document.getElementById('exposureVariables').value;
+
+            const prompt = `我的研究人群是确诊的${diseaseName}，我的结局变量是${outcomeVariable}，现在，数据挖掘结果表明${exposureVariables}可作为潜在的暴露变量。现在，帮我根据发表论文的难易程度，对这些变量进行优先度的排序，并要求详细说明理由。在理由的后面，还需要附上对该变量发表时可以做的优化措施。`;
+
+            dataMiningPromptResult.textContent = prompt;
+            dataMiningPromptResult.classList.remove('hidden');
+        });
+
+        // 文献路径选暴露变量相关代码
+        const literatureButton = document.getElementById('literatureButton');
+        const literatureModal = document.getElementById('literatureModal');
+        const closeLiteratureModalButton = document.getElementById('closeLiteratureModalButton');
+        const generateLiteraturePromptButton = document.getElementById('generateLiteraturePromptButton');
+        const literaturePromptResult = document.getElementById('literaturePromptResult');
+
+        literatureButton.addEventListener('click', () => {
+            literatureModal.classList.remove('hidden');
+        });
+
+        closeLiteratureModalButton.addEventListener('click', () => {
+            closeModal(literatureModal);
+        });
+
+        generateLiteraturePromptButton.addEventListener('click', () => {
+            const literatureDiseaseName = document.getElementById('literatureDiseaseName').value;
+            const literatureOutcomeVariable = document.getElementById('literatureOutcomeVariable').value;
+
+            const prompt = `请基于以下信息，对相关文献进行全面分析：
+
+研究人群特征：${literatureDiseaseName}患者
+结局变量：${literatureOutcomeVariable}
+
+请重点关注以下几个方面：
+
+1. 总结针对类似研究人群和结局变量的前瞻性队列研究中使用的主要暴露变量，特别是那些显示出强烈临床相关性的变量。
+2. 识别这些研究中新发现的或新兴的生物标志物，以及任何创新的临床指标，这些指标可能对预测或解释您的结局变量有重要意义。
+3. 指出任何特别有前景但尚未被广泛研究的潜在暴露变量或生物标志物。
+
+请提供一个综合报告，包括具体的研究实例、数据支持和专家观点。如果存在任何争议或矛盾的发现，请一并指出。最后，根据分析结果，推荐5-10个最有潜力的暴露变量供进一步考虑。`;
+
+            literaturePromptResult.textContent = prompt;
+            literaturePromptResult.classList.remove('hidden');
+        });
+
+        // 暴露及结局关联现状相关代码
+        const associationButton = document.getElementById('associationButton');
+        const associationModal = document.getElementById('associationModal');
+        const closeAssociationModalButton = document.getElementById('closeAssociationModalButton');
+        const generateAssociationPromptButton = document.getElementById('generateAssociationPromptButton');
+        const associationPromptResult = document.getElementById('associationPromptResult');
+
+        associationButton.addEventListener('click', () => {
+            associationModal.classList.remove('hidden');
+        });
+
+        closeAssociationModalButton.addEventListener('click', () => {
+            closeModal(associationModal);
+        });
+
+        generateAssociationPromptButton.addEventListener('click', () => {
+            const exposureVariable = document.getElementById('exposureVariable').value;
+            const outcomeVariable = document.getElementById('outcomeVariableForAssociation').value;
+            const studyPopulation = document.getElementById('studyPopulation').value;
+
+            const prompt = `我的暴露变量与结局变量分别是${exposureVariable}与${outcomeVariable}。人群是${studyPopulation}。现在查阅文献，根据文献查阅结果总结${exposureVariable}与${outcomeVariable}之间的关系属于下列三种关系的哪一种：
+
+1. 缺少证据；
+2. 有证据，但证据存在争议；
+3. 有证据，且证据较一致，并解释理由。
+
+此外，如果是缺少证据，给出可能的潜在机制将暴露变量和结局变量联系在一起。如果有争议，则列出争议双方的（1）XY的定义以及研究人群、（2）结论、（3）文献名称、年份、影响因子、（4）研究类型、（5）样本量&表1变量、（6）统计学方法。如果证据较一致，则要说明“既然证据一致，那我们还要进行研究的意义是什么”。`;
+
+            associationPromptResult.textContent = prompt;
+            associationPromptResult.classList.remove('hidden');
+        });
+
+        // 关闭模态框的通用函数
+        function closeModal(modal) {
+            modal.classList.add('hidden');
+        }
+
+        // 点击模态框外部关闭模态框
+        window.addEventListener('click', (event) => {
+            if (event.target === promptModal) {
+                closeModal(promptModal);
+            } else if (event.target === dataMiningModal) {
+                closeModal(dataMiningModal);
+            } else if (event.target === literatureModal) {
+                closeModal(literatureModal);
+            } else if (event.target === associationModal) {
+                closeModal(associationModal);
+            }
+        });
+
+        // 初始动画
+        document.addEventListener('DOMContentLoaded', () => {
+            const mainContent = document.querySelector('.glassmorphism');
+            mainContent.classList.add('animate-fade-in');
+        });
+    </script>
+</body>
+</html>
